@@ -11,7 +11,7 @@ jobs:
     name: .NET build & test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
@@ -34,7 +34,7 @@ jobs:
       run:
         working-directory: src/engine
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Python 3.12
         uses: actions/setup-python@v5
@@ -51,7 +51,7 @@ jobs:
     name: Validate Docker Compose
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Validate compose file
         run: docker compose -f deploy/docker-compose.yml config
