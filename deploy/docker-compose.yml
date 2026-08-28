@@ -1,0 +1,31 @@
+services:
+  orchestrator:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.orchestrator
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      ConnectionStrings__Default: Data Source=/data/apimorph.db
+      Engine__BaseUrl: http://engine:8000
+      Llm__Enabled: "false"
+      GitHub__AutoMerge: "false"
+    volumes:
+      - apimorph-data:/data
+    depends_on:
+      engine:
+        condition: service_started
+
+  engine:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.engine
+    expose:
+      - "8000"
+    environment:
+      LOG_LEVEL: info
+
+volumes:
+  apimorph-data:

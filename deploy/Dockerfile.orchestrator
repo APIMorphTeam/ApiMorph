@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY ApiMorph.slnx ./
+COPY src/ApiMorph.Orchestrator/ApiMorph.Orchestrator.csproj src/ApiMorph.Orchestrator/
+RUN dotnet restore src/ApiMorph.Orchestrator/ApiMorph.Orchestrator.csproj
+
+COPY src/ApiMorph.Orchestrator/ src/ApiMorph.Orchestrator/
+RUN dotnet publish src/ApiMorph.Orchestrator/ApiMorph.Orchestrator.csproj \
+    -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+
+RUN mkdir -p /data
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080
+
+COPY --from=build /app/publish .
+
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "ApiMorph.Orchestrator.dll"]

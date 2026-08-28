@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ApiMorph.Cli/ApiMorph.Cli.csproj" />
+    <Project Path="src/ApiMorph.Orchestrator/ApiMorph.Orchestrator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ApiMorph.Orchestrator.Tests/ApiMorph.Orchestrator.Tests.csproj" />
+  </Folder>
+</Solution>
