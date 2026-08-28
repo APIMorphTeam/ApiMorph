@@ -1,0 +1,21 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Stripe API (baseline)",
+    "version": "2020-08-27"
+  },
+  "paths": {
+    "/v1/charges": {
+      "post": {
+        "operationId": "CreateCharge",
+        "summary": "Create a charge"
+      }
+    },
+    "/v1/charges/{charge}/refund": {
+      "post": {
+        "operationId": "CreateRefund",
+        "summary": "Create a refund for a charge"
+      }
+    }
+  }
+}

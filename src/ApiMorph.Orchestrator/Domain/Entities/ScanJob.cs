@@ -6,7 +6,7 @@ public class ScanJob
 {
     public Guid Id { get; set; }
 
-    public Guid RepositoryId { get; set; }
+    public Guid? RepositoryId { get; set; }
 
     public Repository? Repository { get; set; }
 
@@ -17,6 +17,14 @@ public class ScanJob
     public DateTimeOffset? CompletedAt { get; set; }
 
     public string? Error { get; set; }
+
+    public string? RepositoryPath { get; set; }
+
+    public string? BranchName { get; set; }
+
+    public string? PullRequestUrl { get; set; }
+
+    public int? PullRequestNumber { get; set; }
 
     public ICollection<Finding> Findings { get; set; } = [];
 }

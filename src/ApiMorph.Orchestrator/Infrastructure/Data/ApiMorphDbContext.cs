@@ -40,10 +40,13 @@ public class ApiMorphDbContext(DbContextOptions<ApiMorphDbContext> options) : Db
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
             entity.Property(e => e.Error).HasMaxLength(4096);
+            entity.Property(e => e.RepositoryPath).HasMaxLength(2048);
+            entity.Property(e => e.BranchName).HasMaxLength(512);
+            entity.Property(e => e.PullRequestUrl).HasMaxLength(2048);
             entity.HasOne(e => e.Repository)
                 .WithMany(r => r.ScanJobs)
                 .HasForeignKey(e => e.RepositoryId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Finding>(entity =>

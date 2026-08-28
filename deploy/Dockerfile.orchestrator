@@ -7,12 +7,16 @@ RUN dotnet restore src/ApiMorph.Orchestrator/ApiMorph.Orchestrator.csproj
 
 COPY src/ApiMorph.Orchestrator/ src/ApiMorph.Orchestrator/
 RUN dotnet publish src/ApiMorph.Orchestrator/ApiMorph.Orchestrator.csproj \
-    -c Release -o /app/publish --no-restore
+    -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
-RUN mkdir -p /data
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /data /workspace
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 
 COPY --from=build /app/publish .

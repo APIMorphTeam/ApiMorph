@@ -65,9 +65,32 @@ curl http://127.0.0.1:8080/api/v1/status
 | 0 | Done | Product decisions, security docs |
 | 1 | Done | OSS foundation, CI, policies |
 | 2 | Done | Solution skeleton, Docker Compose, health checks |
-| 3 | Next | OpenAPI diff + C# detection (no LLM) |
-| 4 | Planned | Draft PR automation |
-| 5 | Planned | LLM patch proposals (BYOK / Ollama) |
+| 3 | Done | OpenAPI diff + C# detection + scan API + Markdown report |
+| 4 | Done | GitHub draft PR automation (PAT, idempotent branch reuse) |
+| 5 | Next | LLM patch proposals (BYOK / Ollama) |
+| 6 | Planned | Interactive CLI installer |
+
+## Scan API (Stage 3)
+
+```bash
+# Local path scan
+curl -X POST http://127.0.0.1:8080/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"repositoryPath":"/examples/stripe-csharp-demo/StripeDemo","provider":"stripe","language":"csharp"}'
+
+# Fetch report
+curl http://127.0.0.1:8080/api/v1/scans/{scanJobId}/report
+```
+
+## Draft PR (Stage 4)
+
+Set `GitHub__Token` and request PR creation:
+
+```bash
+curl -X POST http://127.0.0.1:8080/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"gitHubOwner":"your-org","gitHubRepo":"your-repo","createPullRequest":true,"provider":"stripe","language":"csharp"}'
+```
 
 ## License
 

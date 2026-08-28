@@ -12,8 +12,12 @@ services:
       Engine__BaseUrl: http://engine:8000
       Llm__Enabled: "false"
       GitHub__AutoMerge: "false"
+      GitHub__WorkspacePath: /workspace
+      GitHub__Token: ${GitHub__Token:-}
     volumes:
       - apimorph-data:/data
+      - ../examples:/examples:ro
+      - apimorph-workspace:/workspace
     depends_on:
       engine:
         condition: service_started
@@ -29,3 +33,4 @@ services:
 
 volumes:
   apimorph-data:
+  apimorph-workspace:
