@@ -35,7 +35,8 @@ TestResults/
 .env
 .env.*
 !.env.example
-**/data/
+# Root-level runtime data only (avoid **/data/ — it ignores Infrastructure/Data/ on Windows)
+/data/
 **/*.db
 **/*.db-shm
 **/*.db-wal
