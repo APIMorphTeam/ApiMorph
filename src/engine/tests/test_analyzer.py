@@ -5,7 +5,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 
-FIXTURES_REPO = Path(__file__).resolve().parents[1] / "fixtures" / "repos" / "stripe-demo"
+FIXTURES_REPO = Path(__file__).resolve().parents[1] / "fixtures" / "stripe-demo"
 
 
 @pytest.mark.asyncio

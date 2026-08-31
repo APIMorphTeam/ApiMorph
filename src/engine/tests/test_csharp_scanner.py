@@ -5,7 +5,7 @@ from app.services.openapi_diff import diff_openapi_specs, load_openapi_spec
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 OPENAPI = FIXTURES / "openapi"
-REPO = FIXTURES / "repos" / "stripe-demo"
+REPO = FIXTURES / "stripe-demo"
 
 
 def test_scan_detects_deprecated_api_version_and_source() -> None:
