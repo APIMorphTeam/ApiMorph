@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 class AnalyzeOptions(BaseModel):
     detect_only: bool = Field(default=True, alias="detectOnly")
     llm_enabled: bool = Field(default=False, alias="llmEnabled")
+    openapi_baseline_path: str | None = Field(default=None, alias="openApiBaselinePath")
+    openapi_target_path: str | None = Field(default=None, alias="openApiTargetPath")
 
     model_config = {"populate_by_name": True}
 

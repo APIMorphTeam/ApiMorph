@@ -17,4 +17,7 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
     if request.language != "csharp":
         raise HTTPException(status_code=400, detail="Unsupported language for MVP")
 
-    return analyze_repository(request)
+    try:
+        return analyze_repository(request)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

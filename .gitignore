@@ -41,7 +41,7 @@ TestResults/
 **/*.db-shm
 **/*.db-wal
 
-# Repo clones / scan artifacts
+# Repo clones / scan artifacts (engine test fixtures live under src/engine/fixtures/, not repos/)
 **/workspace/
 **/repos/
 

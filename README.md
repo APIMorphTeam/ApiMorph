@@ -65,9 +65,48 @@ curl http://127.0.0.1:8080/api/v1/status
 | 0 | Done | Product decisions, security docs |
 | 1 | Done | OSS foundation, CI, policies |
 | 2 | Done | Solution skeleton, Docker Compose, health checks |
-| 3 | Next | OpenAPI diff + C# detection (no LLM) |
-| 4 | Planned | Draft PR automation |
-| 5 | Planned | LLM patch proposals (BYOK / Ollama) |
+| 3 | Done | OpenAPI diff + C# detection + scan API + Markdown report |
+| 4 | Done | GitHub draft PR automation (PAT, idempotent branch reuse) |
+| 5 | Next | LLM patch proposals (BYOK / Ollama) |
+| 6 | Planned | Interactive CLI installer |
+
+## Scan API (Stage 3)
+
+```bash
+# Run scan (pretty-printed JSON in Development)
+curl -X POST http://127.0.0.1:8080/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"repositoryPath":"/examples/stripe-csharp-demo/StripeDemo","provider":"stripe","language":"csharp"}'
+
+# Human-readable Markdown report (recommended)
+curl "http://127.0.0.1:8080/api/v1/scans/{scanJobId}/report?format=markdown"
+
+# Or use the .md shortcut
+curl "http://127.0.0.1:8080/api/v1/scans/{scanJobId}/report.md"
+
+# Structured findings only
+curl "http://127.0.0.1:8080/api/v1/scans/{scanJobId}/findings"
+```
+
+PowerShell pretty-print:
+```powershell
+$r = Invoke-RestMethod -Method POST -Uri "http://127.0.0.1:8080/api/v1/scans" `
+  -ContentType "application/json" `
+  -Body '{"repositoryPath":"/examples/stripe-csharp-demo/StripeDemo","provider":"stripe","language":"csharp"}'
+$r | ConvertTo-Json -Depth 6
+
+Invoke-RestMethod "http://127.0.0.1:8080/api/v1/scans/$($r.id)/report?format=markdown"
+```
+
+## Draft PR (Stage 4)
+
+Set `GitHub__Token` and request PR creation:
+
+```bash
+curl -X POST http://127.0.0.1:8080/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"gitHubOwner":"your-org","gitHubRepo":"your-repo","createPullRequest":true,"provider":"stripe","language":"csharp"}'
+```
 
 ## License
 

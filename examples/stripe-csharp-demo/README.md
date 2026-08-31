@@ -1,13 +1,27 @@
-# Stripe C# Demo (placeholder)
+# Stripe C# Demo
 
-Intentionally outdated `Stripe.net` usages for Stage 3 detection tests.
+Minimal C# project with **intentionally outdated** Stripe.net patterns used by ApiMorph Stage 3 detection tests.
 
-This example app will be added in **Stage 3** with:
+## Patterns included
 
-- A minimal ASP.NET Core or console project
-- Known deprecated / breaking Stripe API usages
-- A scripted way to trigger ApiMorph scan against this repo path
+| Rule ID | Pattern |
+| --- | --- |
+| `stripe.api-version.deprecated` | `StripeConfiguration.ApiVersion = "2019-12-03"` |
+| `stripe.charge.source-deprecated` | `ChargeCreateOptions.Source` |
+| `stripe.openapi.removed-operation` | `RefundService` usage (removed in target OpenAPI fixture) |
 
-## Status
+## Run locally
 
-Not implemented yet — placeholder only.
+```bash
+dotnet run --project StripeDemo/StripeDemo.csproj
+```
+
+## Scan with ApiMorph
+
+```bash
+curl -X POST http://127.0.0.1:8080/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"repositoryPath":"/examples/stripe-csharp-demo/StripeDemo","provider":"stripe","language":"csharp"}'
+```
+
+When running via Docker Compose, the `examples` and `workspace` folders are mounted at `/examples` and `/workspace` on **both** orchestrator and engine containers.
