@@ -36,15 +36,36 @@ public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogge
         string branchName,
         string relativeReportPath,
         string reportContent,
+        CancellationToken cancellationToken = default) =>
+        await CommitReportsAsync(
+            repositoryPath,
+            branchName,
+            [new GitReportFile(relativeReportPath, reportContent)],
+            cancellationToken);
+
+    public async Task CommitReportsAsync(
+        string repositoryPath,
+        string branchName,
+        IReadOnlyList<GitReportFile> reports,
         CancellationToken cancellationToken = default)
     {
+        if (reports.Count == 0)
+        {
+            throw new ArgumentException("At least one report file is required.", nameof(reports));
+        }
+
         await RunGitAsync(repositoryPath, $"checkout -B {branchName}", cancellationToken);
 
-        var reportFullPath = Path.Combine(repositoryPath, relativeReportPath);
-        Directory.CreateDirectory(Path.GetDirectoryName(reportFullPath)!);
-        await File.WriteAllTextAsync(reportFullPath, reportContent, Encoding.UTF8, cancellationToken);
-
-        await RunGitAsync(repositoryPath, "add " + relativeReportPath.Replace('\\', '/'), cancellationToken);
+        foreach (var report in reports)
+        {
+            var reportFullPath = Path.Combine(repositoryPath, report.RelativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(reportFullPath)!);
+            await File.WriteAllTextAsync(reportFullPath, report.Content, Encoding.UTF8, cancellationToken);
+            await RunGitAsync(
+                repositoryPath,
+                "add " + report.RelativePath.Replace('\\', '/'),
+                cancellationToken);
+        }
 
         var status = await RunGitAsync(repositoryPath, "status --porcelain", cancellationToken);
         if (string.IsNullOrWhiteSpace(status))
@@ -53,13 +74,31 @@ public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogge
             return;
         }
 
+        await EnsureGitIdentityAsync(repositoryPath, cancellationToken);
+
         await RunGitAsync(
             repositoryPath,
-            "commit -m \"chore(apimorph): add API migration scan report\"",
+            "commit -m \"chore(apimorph): update API migration scan report\"",
             cancellationToken);
 
         await RunGitAsync(repositoryPath, $"push -u origin {branchName}", cancellationToken);
     }
+
+    private async Task EnsureGitIdentityAsync(string repositoryPath, CancellationToken cancellationToken)
+    {
+        var name = string.IsNullOrWhiteSpace(_options.CommitAuthorName)
+            ? "ApiMorph Bot"
+            : _options.CommitAuthorName.Trim();
+        var email = string.IsNullOrWhiteSpace(_options.CommitAuthorEmail)
+            ? "apimorph-bot@users.noreply.github.com"
+            : _options.CommitAuthorEmail.Trim();
+
+        await RunGitAsync(repositoryPath, $"config user.name \"{EscapeGitConfigValue(name)}\"", cancellationToken);
+        await RunGitAsync(repositoryPath, $"config user.email \"{EscapeGitConfigValue(email)}\"", cancellationToken);
+    }
+
+    private static string EscapeGitConfigValue(string value) =>
+        value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
 
     private string BuildCloneUrl(GitHubRepositoryRef repository)
     {

@@ -17,7 +17,33 @@ public sealed class CreateScanRequest
     public bool CreatePullRequest { get; set; }
 }
 
-public sealed class ScanJobResponse
+public sealed record FindingSummary
+{
+    public required string RuleId { get; init; }
+
+    public required string FilePath { get; init; }
+
+    public required int Line { get; init; }
+
+    public required string Message { get; init; }
+
+    public required string Confidence { get; init; }
+
+    public string? Evidence { get; init; }
+}
+
+public sealed record ScanJobLinks
+{
+    public required string Self { get; init; }
+
+    public required string ReportMarkdown { get; init; }
+
+    public required string ReportJson { get; init; }
+
+    public required string Findings { get; init; }
+}
+
+public sealed record ScanJobResponse
 {
     public required Guid Id { get; init; }
 
@@ -33,12 +59,16 @@ public sealed class ScanJobResponse
 
     public int FindingCount { get; init; }
 
+    public IReadOnlyList<FindingSummary> Findings { get; init; } = [];
+
     public string? PullRequestUrl { get; init; }
 
     public int? PullRequestNumber { get; init; }
+
+    public ScanJobLinks? Links { get; init; }
 }
 
-public sealed class ScanReportResponse
+public sealed record ScanReportResponse
 {
     public required Guid ScanJobId { get; init; }
 

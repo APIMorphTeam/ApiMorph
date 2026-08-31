@@ -73,13 +73,29 @@ curl http://127.0.0.1:8080/api/v1/status
 ## Scan API (Stage 3)
 
 ```bash
-# Local path scan
+# Run scan (pretty-printed JSON in Development)
 curl -X POST http://127.0.0.1:8080/api/v1/scans \
   -H "Content-Type: application/json" \
   -d '{"repositoryPath":"/examples/stripe-csharp-demo/StripeDemo","provider":"stripe","language":"csharp"}'
 
-# Fetch report
-curl http://127.0.0.1:8080/api/v1/scans/{scanJobId}/report
+# Human-readable Markdown report (recommended)
+curl "http://127.0.0.1:8080/api/v1/scans/{scanJobId}/report?format=markdown"
+
+# Or use the .md shortcut
+curl "http://127.0.0.1:8080/api/v1/scans/{scanJobId}/report.md"
+
+# Structured findings only
+curl "http://127.0.0.1:8080/api/v1/scans/{scanJobId}/findings"
+```
+
+PowerShell pretty-print:
+```powershell
+$r = Invoke-RestMethod -Method POST -Uri "http://127.0.0.1:8080/api/v1/scans" `
+  -ContentType "application/json" `
+  -Body '{"repositoryPath":"/examples/stripe-csharp-demo/StripeDemo","provider":"stripe","language":"csharp"}'
+$r | ConvertTo-Json -Depth 6
+
+Invoke-RestMethod "http://127.0.0.1:8080/api/v1/scans/$($r.id)/report?format=markdown"
 ```
 
 ## Draft PR (Stage 4)

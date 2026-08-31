@@ -44,12 +44,18 @@ public class ScanApiIntegrationTests : IClassFixture<ScanApiFactory>
         Assert.Equal("Completed", created.Status);
         Assert.True(created.FindingCount >= 3);
 
-        var reportResponse = await _client.GetAsync($"/api/v1/scans/{created.Id}/report");
+        var reportResponse = await _client.GetAsync($"/api/v1/scans/{created.Id}/report?format=markdown");
         reportResponse.EnsureSuccessStatusCode();
-        var report = await reportResponse.Content.ReadFromJsonAsync<ScanReportResponse>();
+        Assert.Equal("text/markdown", reportResponse.Content.Headers.ContentType?.MediaType);
+        var markdown = await reportResponse.Content.ReadAsStringAsync();
+        Assert.Contains("# ApiMorph Scan Report", markdown);
+        Assert.Contains("stripe.api-version.deprecated", markdown);
+
+        var jsonReportResponse = await _client.GetAsync($"/api/v1/scans/{created.Id}/report");
+        jsonReportResponse.EnsureSuccessStatusCode();
+        var report = await jsonReportResponse.Content.ReadFromJsonAsync<ScanReportResponse>();
         Assert.NotNull(report);
         Assert.Equal("markdown", report.Format);
-        Assert.Contains("stripe.api-version.deprecated", report.Content);
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApiMorphDbContext>();

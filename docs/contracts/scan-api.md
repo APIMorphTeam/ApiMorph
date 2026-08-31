@@ -64,12 +64,13 @@ Set in environment or `appsettings.json`:
 
 - Use a fine-scoped PAT with `contents` + `pull_requests` access to selected repos.
 - `AutoMerge` must remain `false` (enforced in code).
-- Draft PRs are idempotent per branch name (`apimorph/scan-{jobId}`); existing open PRs are reused.
+- Draft PRs are idempotent per provider branch (`apimorph/{provider}-migration`); existing open PRs are reused.
 
 ## Report file in PR
 
 When `createPullRequest=true`, ApiMorph commits:
 
-`apimorph/reports/scan-{jobId}.md`
+- `apimorph/reports/migration-report.md` (updated on each scan)
+- `apimorph/reports/history/scan-{jobId}.md` (one file per scan job)
 
-and opens a **draft** PR containing the migration report.
+on branch **`apimorph/{provider}-migration`** (e.g. `apimorph/stripe-migration`) and opens or **reuses** the open draft PR for that branch.

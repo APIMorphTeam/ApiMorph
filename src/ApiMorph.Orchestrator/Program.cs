@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using ApiMorph.Orchestrator.Application.Services;
 using ApiMorph.Orchestrator.Infrastructure.Data;
 using ApiMorph.Orchestrator.Infrastructure.Engine;
@@ -6,7 +8,15 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.WriteIndented = builder.Environment.IsDevelopment();
+    });
+
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 builder.Services.Configure<GitHubOptions>(builder.Configuration.GetSection(GitHubOptions.SectionName));
 

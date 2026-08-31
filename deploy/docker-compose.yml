@@ -14,6 +14,8 @@ services:
       GitHub__AutoMerge: "false"
       GitHub__WorkspacePath: /workspace
       GitHub__Token: ${GitHub__Token:-}
+      GitHub__CommitAuthorName: ${GitHub__CommitAuthorName:-ApiMorph Bot}
+      GitHub__CommitAuthorEmail: ${GitHub__CommitAuthorEmail:-apimorph-bot@users.noreply.github.com}
     volumes:
       - apimorph-data:/data
       - ../examples:/examples:ro
@@ -30,6 +32,9 @@ services:
       - "8000"
     environment:
       LOG_LEVEL: info
+    volumes:
+      - ../examples:/examples:ro
+      - apimorph-workspace:/workspace
 
 volumes:
   apimorph-data:

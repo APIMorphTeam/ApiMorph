@@ -50,6 +50,32 @@ public class ScanServiceTests
         Assert.Null(result.PullRequestUrl);
     }
 
+    [Fact]
+    public async Task CreateAndRunAsync_UsesStableMigrationBranch_ForPullRequests()
+    {
+        await using var dbContext = CreateDbContext();
+        var gitRepo = new FakeGitRepositoryService();
+        var scanService = CreateScanService(
+            dbContext,
+            new FakeGitHubPullRequestService(),
+            gitRepo);
+
+        var request = new CreateScanRequest
+        {
+            GitHubOwner = "APIMorphTeam",
+            GitHubRepo = "ApiMorph-test",
+            Provider = "stripe",
+            CreatePullRequest = true,
+        };
+
+        await scanService.CreateAndRunAsync(request);
+        await scanService.CreateAndRunAsync(request);
+
+        Assert.Equal(2, gitRepo.BranchNames.Count);
+        Assert.Equal("apimorph/stripe-migration", gitRepo.BranchNames[0]);
+        Assert.Equal(gitRepo.BranchNames[0], gitRepo.BranchNames[1]);
+    }
+
   private static ScanService CreateScanService(
         ApiMorphDbContext dbContext,
         IGitHubPullRequestService pullRequestService,
@@ -125,6 +151,22 @@ public class ScanServiceTests
             string branchName,
             string relativeReportPath,
             string reportContent,
-            CancellationToken cancellationToken = default) => Task.CompletedTask;
+            CancellationToken cancellationToken = default)
+        {
+            BranchNames.Add(branchName);
+            return Task.CompletedTask;
+        }
+
+        public Task CommitReportsAsync(
+            string repositoryPath,
+            string branchName,
+            IReadOnlyList<GitReportFile> reports,
+            CancellationToken cancellationToken = default)
+        {
+            BranchNames.Add(branchName);
+            return Task.CompletedTask;
+        }
+
+        public List<string> BranchNames { get; } = [];
     }
 }

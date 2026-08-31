@@ -16,6 +16,8 @@ public interface IScanService
 
     Task<ScanJobResponse?> GetAsync(Guid scanJobId, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<FindingSummary>?> GetFindingsAsync(Guid scanJobId, CancellationToken cancellationToken = default);
+
     Task<ScanReportResponse?> GetReportAsync(Guid scanJobId, CancellationToken cancellationToken = default);
 }
 
@@ -81,11 +83,16 @@ public sealed class ScanService(
 
             if (ShouldCreatePullRequest(request, repositoryRef))
             {
-                await CreateDraftPullRequestAsync(scanJob, findings, repositoryRef!, cancellationToken);
+                await CreateDraftPullRequestAsync(
+                    scanJob,
+                    findings,
+                    repositoryRef!,
+                    request.Provider,
+                    cancellationToken);
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);
-            return ToResponse(scanJob, findings.Count);
+            return ToResponse(scanJob, findings);
         }
         catch (Exception ex)
         {
@@ -94,7 +101,7 @@ public sealed class ScanService(
             scanJob.CompletedAt = DateTimeOffset.UtcNow;
             scanJob.Error = ex.Message;
             await dbContext.SaveChangesAsync(cancellationToken);
-            return ToResponse(scanJob, 0);
+            return ToResponse(scanJob, []);
         }
     }
 
@@ -104,7 +111,33 @@ public sealed class ScanService(
             .Include(j => j.Findings)
             .FirstOrDefaultAsync(j => j.Id == scanJobId, cancellationToken);
 
-        return scanJob is null ? null : ToResponse(scanJob, scanJob.Findings.Count);
+        return scanJob is null ? null : ToResponse(scanJob, scanJob.Findings.ToList());
+    }
+
+    public async Task<IReadOnlyList<FindingSummary>?> GetFindingsAsync(
+        Guid scanJobId,
+        CancellationToken cancellationToken = default)
+    {
+        var exists = await dbContext.ScanJobs.AnyAsync(j => j.Id == scanJobId, cancellationToken);
+        if (!exists)
+        {
+            return null;
+        }
+
+        return await dbContext.Findings
+            .Where(f => f.ScanJobId == scanJobId)
+            .OrderBy(f => f.FilePath)
+            .ThenBy(f => f.Line)
+            .Select(f => new FindingSummary
+            {
+                RuleId = f.RuleId,
+                FilePath = f.FilePath,
+                Line = f.Line,
+                Message = f.Message,
+                Confidence = f.Confidence.ToString(),
+                Evidence = f.Evidence,
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<ScanReportResponse?> GetReportAsync(Guid scanJobId, CancellationToken cancellationToken = default)
@@ -181,20 +214,25 @@ public sealed class ScanService(
         ScanJob scanJob,
         IReadOnlyList<Finding> findings,
         GitHubRepositoryRef repositoryRef,
+        string provider,
         CancellationToken cancellationToken)
     {
-        var branchName = $"{_gitHubOptions.BranchPrefix}/scan-{scanJob.Id:N}";
-        var reportPath = $"apimorph/reports/scan-{scanJob.Id:N}.md";
+        // Stable branch per repo+provider so repeat scans update one draft PR (idempotent).
+        var branchName = GitHubBranchNames.MigrationBranch(_gitHubOptions.BranchPrefix, provider);
+        var reportPath = GitHubBranchNames.MigrationReportPath();
+        var historyReportPath = GitHubBranchNames.HistoricalReportPath(scanJob.Id);
         var report = reportGenerator.GenerateMarkdown(scanJob, findings);
 
-        await gitRepositoryService.CommitReportAsync(
+        await gitRepositoryService.CommitReportsAsync(
             scanJob.RepositoryPath!,
             branchName,
-            reportPath,
-            report,
+            [
+                new GitReportFile(reportPath, report),
+                new GitReportFile(historyReportPath, report),
+            ],
             cancellationToken);
 
-        var title = $"ApiMorph: Stripe API migration report ({findings.Count} findings)";
+        var title = $"ApiMorph: {provider} API migration report ({findings.Count} findings)";
         var body = $"""
             ## ApiMorph draft migration report
 
@@ -202,11 +240,14 @@ public sealed class ScanService(
 
             - Scan job: `{scanJob.Id}`
             - Findings: **{findings.Count}**
-            - Report file: `{reportPath}`
+            - Latest report: `{reportPath}`
+            - History copy: `{historyReportPath}`
+
+            Repeat scans update this branch and reuse the open draft PR when possible.
 
             ### Review required
             - Do not merge without human review.
-            - ApiMorph did not apply automatic code changes in this scan.
+            - ApiMorph did not apply automatic code changes in this scan (Stage 5).
             """;
 
         var pullRequest = await gitHubPullRequestService.CreateDraftPullRequestAsync(
@@ -229,7 +270,7 @@ public sealed class ScanService(
             _ => ConfidenceLevel.Medium,
         };
 
-    private static ScanJobResponse ToResponse(ScanJob scanJob, int findingCount) =>
+    private static ScanJobResponse ToResponse(ScanJob scanJob, IReadOnlyList<Finding> findings) =>
         new()
         {
             Id = scanJob.Id,
@@ -238,7 +279,20 @@ public sealed class ScanService(
             CompletedAt = scanJob.CompletedAt,
             RepositoryPath = scanJob.RepositoryPath,
             Error = scanJob.Error,
-            FindingCount = findingCount,
+            FindingCount = findings.Count,
+            Findings = findings
+                .OrderBy(f => f.FilePath)
+                .ThenBy(f => f.Line)
+                .Select(f => new FindingSummary
+                {
+                    RuleId = f.RuleId,
+                    FilePath = f.FilePath,
+                    Line = f.Line,
+                    Message = f.Message,
+                    Confidence = f.Confidence.ToString(),
+                    Evidence = f.Evidence,
+                })
+                .ToList(),
             PullRequestUrl = scanJob.PullRequestUrl,
             PullRequestNumber = scanJob.PullRequestNumber,
         };

@@ -20,7 +20,14 @@ public sealed class EngineClient(HttpClient httpClient) : IEngineClient
     public async Task<AnalyzeResponseDto> AnalyzeAsync(AnalyzeRequestDto request, CancellationToken cancellationToken = default)
     {
         var response = await httpClient.PostAsJsonAsync("/v1/analyze", request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException(
+                $"Engine analyze failed ({(int)response.StatusCode}): {errorBody}");
+        }
+
         var result = await response.Content.ReadFromJsonAsync<AnalyzeResponseDto>(cancellationToken);
         return result ?? throw new InvalidOperationException("Engine analyze response was empty.");
     }

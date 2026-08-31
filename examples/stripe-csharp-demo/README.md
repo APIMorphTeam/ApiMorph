@@ -24,4 +24,4 @@ curl -X POST http://127.0.0.1:8080/api/v1/scans \
   -d '{"repositoryPath":"/examples/stripe-csharp-demo/StripeDemo","provider":"stripe","language":"csharp"}'
 ```
 
-When running via Docker Compose, the `examples` folder is mounted at `/examples`.
+When running via Docker Compose, the `examples` and `workspace` folders are mounted at `/examples` and `/workspace` on **both** orchestrator and engine containers.

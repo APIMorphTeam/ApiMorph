@@ -25,4 +25,13 @@ public class GitHubPullRequestServiceTests
 
         Assert.True(service.IsConfigured);
     }
+
+    [Fact]
+    public void GitHubOptions_HasDefaultCommitIdentity()
+    {
+        var options = new GitHubOptions();
+
+        Assert.Equal("ApiMorph Bot", options.CommitAuthorName);
+        Assert.Equal("apimorph-bot@users.noreply.github.com", options.CommitAuthorEmail);
+    }
 }
