@@ -19,6 +19,8 @@ builder.Services.AddControllers()
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 builder.Services.Configure<GitHubOptions>(builder.Configuration.GetSection(GitHubOptions.SectionName));
+builder.Services.Configure<PatchOptions>(builder.Configuration.GetSection(PatchOptions.SectionName));
+builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.SectionName));
 
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? "Data Source=apimorph.db";

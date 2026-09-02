@@ -67,8 +67,11 @@ curl http://127.0.0.1:8080/api/v1/status
 | 2 | Done | Solution skeleton, Docker Compose, health checks |
 | 3 | Done | OpenAPI diff + C# detection + scan API + Markdown report |
 | 4 | Done | GitHub draft PR automation (PAT, idempotent branch reuse) |
-| 5 | Next | LLM patch proposals (BYOK / Ollama) |
-| 6 | Planned | Interactive CLI installer |
+| 5 | Done | Deterministic patches + optional LLM (BYOK / Ollama) |
+| 6 | Next | Interactive CLI installer |
+| 7 | Planned | GitHub App (replace PAT) |
+| 8 | Planned | Webhooks & scheduled scans |
+| 9 | Planned | Pluggable OpenAPI-first providers |
 
 ## Scan API (Stage 3)
 
@@ -107,6 +110,34 @@ curl -X POST http://127.0.0.1:8080/api/v1/scans \
   -H "Content-Type: application/json" \
   -d '{"gitHubOwner":"your-org","gitHubRepo":"your-repo","createPullRequest":true,"provider":"stripe","language":"csharp"}'
 ```
+
+## Patches (Stage 5)
+
+By default `Patch:Enabled=true` applies **deterministic** C# fixes to the same draft PR branch (API version bump, `Source` → `PaymentMethod`, refund migration notes).
+
+Detect-only scan (no code changes):
+
+```bash
+curl -X POST http://127.0.0.1:8080/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"repositoryPath":"/examples/stripe-csharp-demo/StripeDemo","detectOnly":true}'
+```
+
+Enable optional LLM-assisted patches (Ollama or OpenAI-compatible API):
+
+```bash
+# deploy/.env
+Llm__Enabled=true
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+```
+
+```bash
+curl -X POST http://127.0.0.1:8080/api/v1/scans \
+  -H "Content-Type: application/json" \
+  -d '{"gitHubOwner":"your-org","gitHubRepo":"your-repo","createPullRequest":true,"llmEnabled":true}'
+```
+
+PRs remain **draft** until a human reviews and merges.
 
 ## License
 

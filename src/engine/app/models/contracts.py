@@ -31,9 +31,21 @@ class Finding(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class FilePatch(BaseModel):
+    file_path: str = Field(alias="filePath")
+    patch_type: str = Field(alias="patchType")
+    description: str
+    content: str
+    linked_rule_ids: list[str] = Field(default_factory=list, alias="linkedRuleIds")
+
+    model_config = {"populate_by_name": True}
+
+
 class AnalyzeSummary(BaseModel):
     files_scanned: int = Field(alias="filesScanned")
     finding_count: int = Field(alias="findingCount")
+    patch_count: int = Field(default=0, alias="patchCount")
+    patch_mode: str = Field(default="detect-only", alias="patchMode")
 
     model_config = {"populate_by_name": True}
 
@@ -41,6 +53,7 @@ class AnalyzeSummary(BaseModel):
 class AnalyzeResponse(BaseModel):
     contract_version: str = Field(alias="contractVersion")
     findings: list[Finding] = Field(default_factory=list)
+    patches: list[FilePatch] = Field(default_factory=list)
     summary: AnalyzeSummary
 
     model_config = {"populate_by_name": True}

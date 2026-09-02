@@ -28,6 +28,7 @@ public class StatusController(IEngineClient engineClient, IConfiguration configu
                 configuration = new
                 {
                     llmEnabled = configuration.GetValue("Llm:Enabled", false),
+                    patchEnabled = configuration.GetValue("Patch:Enabled", true),
                     autoMerge = configuration.GetValue("GitHub:AutoMerge", false)
                 }
             });

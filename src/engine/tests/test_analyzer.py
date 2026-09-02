@@ -32,6 +32,27 @@ async def test_analyze_returns_findings_for_demo_repo() -> None:
 
 
 @pytest.mark.asyncio
+async def test_analyze_applies_deterministic_patches_when_detect_only_false() -> None:
+    transport = ASGITransport(app=app)
+    payload = {
+        "contractVersion": "1",
+        "provider": "stripe",
+        "repositoryPath": str(FIXTURES_REPO),
+        "language": "csharp",
+        "options": {"detectOnly": False, "llmEnabled": False},
+    }
+
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post("/v1/analyze", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["summary"]["patchMode"] == "deterministic"
+    assert body["summary"]["patchCount"] == 1
+    assert body["patches"][0]["patchType"] == "deterministic"
+
+
+@pytest.mark.asyncio
 async def test_analyze_returns_400_for_missing_repo() -> None:
     transport = ASGITransport(app=app)
     payload = {

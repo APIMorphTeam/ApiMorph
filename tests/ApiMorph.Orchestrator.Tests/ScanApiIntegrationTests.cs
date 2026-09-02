@@ -113,6 +113,20 @@ internal sealed class FakeEngineClient : IEngineClient
 
     public Task<AnalyzeResponseDto> AnalyzeAsync(AnalyzeRequestDto request, CancellationToken cancellationToken = default)
     {
+        var patches = request.Options.DetectOnly
+            ? []
+            : new List<FilePatchDto>
+            {
+                new()
+                {
+                    FilePath = "Services/PaymentService.cs",
+                    PatchType = "deterministic",
+                    Description = "Update Stripe API version",
+                    Content = "// patched",
+                    LinkedRuleIds = ["stripe.api-version.deprecated"],
+                },
+            };
+
         return Task.FromResult(new AnalyzeResponseDto
         {
             ContractVersion = "1",
@@ -146,10 +160,13 @@ internal sealed class FakeEngineClient : IEngineClient
                     Evidence = "var refundService = new RefundService();",
                 },
             ],
+            Patches = patches,
             Summary = new AnalyzeSummaryDto
             {
                 FilesScanned = 2,
                 FindingCount = 3,
+                PatchCount = patches.Count,
+                PatchMode = request.Options.DetectOnly ? "detect-only" : "deterministic",
             },
         });
     }

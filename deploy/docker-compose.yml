@@ -10,7 +10,8 @@ services:
       ASPNETCORE_URLS: http://0.0.0.0:8080
       ConnectionStrings__Default: Data Source=/data/apimorph.db
       Engine__BaseUrl: http://engine:8000
-      Llm__Enabled: "false"
+      Llm__Enabled: ${Llm__Enabled:-false}
+      Patch__Enabled: ${Patch__Enabled:-true}
       GitHub__AutoMerge: "false"
       GitHub__WorkspacePath: /workspace
       GitHub__Token: ${GitHub__Token:-}
@@ -32,6 +33,12 @@ services:
       - "8000"
     environment:
       LOG_LEVEL: info
+      LLM__ENABLED: ${Llm__Enabled:-false}
+      LLM__PROVIDER: ${LLM__PROVIDER:-ollama}
+      LLM__MODEL: ${LLM__MODEL:-llama3.2}
+      LLM__OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LLM__OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      LLM__OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
     volumes:
       - ../examples:/examples:ro
       - apimorph-workspace:/workspace

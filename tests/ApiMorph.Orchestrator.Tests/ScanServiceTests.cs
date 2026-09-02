@@ -88,6 +88,8 @@ public class ScanServiceTests
             gitRepositoryService,
             pullRequestService,
             Options.Create(new GitHubOptions { Token = "test-token", BranchPrefix = "apimorph" }),
+            Options.Create(new PatchOptions { Enabled = true }),
+            Options.Create(new LlmOptions { Enabled = false }),
             NullLogger<ScanService>.Instance);
     }
 
@@ -161,6 +163,17 @@ public class ScanServiceTests
             string repositoryPath,
             string branchName,
             IReadOnlyList<GitReportFile> reports,
+            CancellationToken cancellationToken = default)
+        {
+            BranchNames.Add(branchName);
+            return Task.CompletedTask;
+        }
+
+        public Task CommitMigrationAsync(
+            string repositoryPath,
+            string branchName,
+            IReadOnlyList<GitFileChange> files,
+            string commitMessage,
             CancellationToken cancellationToken = default)
         {
             BranchNames.Add(branchName);

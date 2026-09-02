@@ -15,6 +15,12 @@ public sealed class CreateScanRequest
     public string? GitHubRepo { get; set; }
 
     public bool CreatePullRequest { get; set; }
+
+    /// <summary>When null, uses server Patch:Enabled (default true).</summary>
+    public bool? DetectOnly { get; set; }
+
+    /// <summary>When null, uses server Llm:Enabled (default false).</summary>
+    public bool? LlmEnabled { get; set; }
 }
 
 public sealed record FindingSummary
@@ -64,6 +70,10 @@ public sealed record ScanJobResponse
     public string? PullRequestUrl { get; init; }
 
     public int? PullRequestNumber { get; init; }
+
+    public string PatchMode { get; init; } = "detect-only";
+
+    public int PatchCount { get; init; }
 
     public ScanJobLinks? Links { get; init; }
 }
