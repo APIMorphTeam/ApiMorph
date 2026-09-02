@@ -14,7 +14,7 @@ public sealed class GitHubOptions
 
     public string WorkspacePath { get; set; } = "/workspace";
 
-  /// <summary>Git commit author name for ApiMorph-generated commits.</summary>
+    /// <summary>Git commit author name for ApiMorph-generated commits.</summary>
     public string CommitAuthorName { get; set; } = "ApiMorph Bot";
 
     /// <summary>Git commit author email for ApiMorph-generated commits.</summary>
@@ -24,6 +24,8 @@ public sealed class GitHubOptions
 public sealed record GitHubRepositoryRef(string Owner, string Repo, string DefaultBranch = "main");
 
 public sealed record PullRequestResult(string Url, int Number, string BranchName);
+
+public sealed record GitFileChange(string RelativePath, string Content);
 
 public sealed record GitReportFile(string RelativePath, string Content);
 
@@ -42,6 +44,13 @@ public interface IGitRepositoryService
         string repositoryPath,
         string branchName,
         IReadOnlyList<GitReportFile> reports,
+        CancellationToken cancellationToken = default);
+
+    Task CommitMigrationAsync(
+        string repositoryPath,
+        string branchName,
+        IReadOnlyList<GitFileChange> files,
+        string commitMessage,
         CancellationToken cancellationToken = default);
 }
 

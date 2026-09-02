@@ -1,4 +1,4 @@
-# Scan API (Stage 3) & Draft PR (Stage 4)
+# Scan API (Stage 3) & Draft PR (Stage 4–5)
 
 ## Scan endpoints
 
@@ -17,7 +17,7 @@ Creates and runs a scan job synchronously (MVP).
 }
 ```
 
-**GitHub repository example (Stage 4):**
+**GitHub repository with patches (Stage 5, default):**
 
 ```json
 {
@@ -29,9 +29,36 @@ Creates and runs a scan job synchronously (MVP).
 }
 ```
 
+**Detect-only (no code patches in PR):**
+
+```json
+{
+  "gitHubOwner": "your-org",
+  "gitHubRepo": "your-repo",
+  "createPullRequest": true,
+  "detectOnly": true
+}
+```
+
+**Optional LLM-assisted patches:**
+
+```json
+{
+  "gitHubOwner": "your-org",
+  "gitHubRepo": "your-repo",
+  "createPullRequest": true,
+  "llmEnabled": true
+}
+```
+
+| Field | Default | Description |
+| --- | --- | --- |
+| `detectOnly` | `false` when `Patch:Enabled=true` | Skip code patches; report only |
+| `llmEnabled` | `Llm:Enabled` config (`false`) | Use Ollama or OpenAI-compatible API for harder fixes |
+
 ### `GET /api/v1/scans/{scanJobId}`
 
-Returns job status, finding count, and optional PR metadata.
+Returns job status, finding count, `patchMode`, `patchCount`, and optional PR metadata.
 
 ### `GET /api/v1/scans/{scanJobId}/report`
 
@@ -74,3 +101,5 @@ When `createPullRequest=true`, ApiMorph commits:
 - `apimorph/reports/history/scan-{jobId}.md` (one file per scan job)
 
 on branch **`apimorph/{provider}-migration`** (e.g. `apimorph/stripe-migration`) and opens or **reuses** the open draft PR for that branch.
+
+When patches are enabled, ApiMorph also commits updated source files (deterministic and/or LLM-assisted) to the same branch.

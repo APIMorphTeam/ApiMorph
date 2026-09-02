@@ -17,7 +17,7 @@ Versioned contract between **ApiMorph Orchestrator** (.NET 9) and **ApiMorph Eng
 
 ## `POST /v1/analyze`
 
-Analyze a local repository path for API contract impacts.
+Analyze a local repository path for API contract impacts and optional migration patches.
 
 ### Request
 
@@ -40,8 +40,8 @@ Analyze a local repository path for API contract impacts.
 | `provider` | string | yes | API provider id (MVP: `stripe`) |
 | `repositoryPath` | string | yes | Absolute path inside the engine container |
 | `language` | string | yes | Source language (MVP: `csharp`) |
-| `options.detectOnly` | bool | no | Default `true` — no patch generation |
-| `options.llmEnabled` | bool | no | Default `false` |
+| `options.detectOnly` | bool | no | Default `true` — findings only, no patches |
+| `options.llmEnabled` | bool | no | Default `false` — use LLM for harder migrations when `detectOnly=false` |
 
 ### Response `200`
 
@@ -50,20 +50,42 @@ Analyze a local repository path for API contract impacts.
   "contractVersion": "1",
   "findings": [
     {
-      "ruleId": "stripe.openapi.removed-endpoint",
-      "filePath": "src/Payments/StripeService.cs",
-      "line": 42,
-      "message": "Usage of removed endpoint detected",
-      "confidence": "medium",
-      "evidence": "StripeChargeService.CreateLegacy(...)"
+      "ruleId": "stripe.api-version.deprecated",
+      "filePath": "Services/PaymentService.cs",
+      "line": 9,
+      "message": "Deprecated Stripe API version configured in code",
+      "confidence": "high",
+      "evidence": "StripeConfiguration.ApiVersion = \"2019-12-03\";"
+    }
+  ],
+  "patches": [
+    {
+      "filePath": "Services/PaymentService.cs",
+      "patchType": "deterministic",
+      "description": "Update Stripe API version to 2024-11-20.acacia",
+      "content": "<full updated file contents>",
+      "linkedRuleIds": ["stripe.api-version.deprecated"]
     }
   ],
   "summary": {
-    "filesScanned": 12,
-    "findingCount": 1
+    "filesScanned": 2,
+    "findingCount": 3,
+    "patchCount": 1,
+    "patchMode": "deterministic"
   }
 }
 ```
+
+### Patch types
+
+| `patchType` | Description |
+| --- | --- |
+| `deterministic` | Rule-based codemod (no LLM) |
+| `llm-assisted` | LLM-proposed change (BYOK or Ollama) |
+
+### `patchMode` summary values
+
+`detect-only` | `deterministic` | `llm-assisted` | `mixed`
 
 ### Confidence values
 
@@ -76,7 +98,3 @@ Analyze a local repository path for API contract impacts.
 | `400` | `{ "detail": "..." }` — invalid request |
 | `422` | Pydantic validation error |
 | `500` | `{ "detail": "..." }` — internal error |
-
-## Stage 2 behavior
-
-The engine returns an empty `findings` array with `filesScanned: 0`. Real detection is implemented in Stage 3.

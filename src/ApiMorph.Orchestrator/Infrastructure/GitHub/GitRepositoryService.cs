@@ -49,21 +49,40 @@ public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogge
         IReadOnlyList<GitReportFile> reports,
         CancellationToken cancellationToken = default)
     {
-        if (reports.Count == 0)
+        var files = reports
+            .Select(report => new GitFileChange(report.RelativePath, report.Content))
+            .ToList();
+
+        await CommitMigrationAsync(
+            repositoryPath,
+            branchName,
+            files,
+            "chore(apimorph): update API migration scan report",
+            cancellationToken);
+    }
+
+    public async Task CommitMigrationAsync(
+        string repositoryPath,
+        string branchName,
+        IReadOnlyList<GitFileChange> files,
+        string commitMessage,
+        CancellationToken cancellationToken = default)
+    {
+        if (files.Count == 0)
         {
-            throw new ArgumentException("At least one report file is required.", nameof(reports));
+            throw new ArgumentException("At least one file change is required.", nameof(files));
         }
 
-        await RunGitAsync(repositoryPath, $"checkout -B {branchName}", cancellationToken);
+        await CheckoutMigrationBranchAsync(repositoryPath, branchName, cancellationToken);
 
-        foreach (var report in reports)
+        foreach (var file in files)
         {
-            var reportFullPath = Path.Combine(repositoryPath, report.RelativePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(reportFullPath)!);
-            await File.WriteAllTextAsync(reportFullPath, report.Content, Encoding.UTF8, cancellationToken);
+            var fullPath = Path.Combine(repositoryPath, file.RelativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+            await File.WriteAllTextAsync(fullPath, file.Content, Encoding.UTF8, cancellationToken);
             await RunGitAsync(
                 repositoryPath,
-                "add " + report.RelativePath.Replace('\\', '/'),
+                "add " + file.RelativePath.Replace('\\', '/'),
                 cancellationToken);
         }
 
@@ -78,10 +97,40 @@ public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogge
 
         await RunGitAsync(
             repositoryPath,
-            "commit -m \"chore(apimorph): update API migration scan report\"",
+            $"commit -m \"{EscapeGitCommitMessage(commitMessage)}\"",
             cancellationToken);
 
         await RunGitAsync(repositoryPath, $"push -u origin {branchName}", cancellationToken);
+    }
+
+    private async Task CheckoutMigrationBranchAsync(
+        string repositoryPath,
+        string branchName,
+        CancellationToken cancellationToken)
+    {
+        await RunGitAsync(repositoryPath, "fetch origin", cancellationToken);
+
+        if (await RemoteBranchExistsAsync(repositoryPath, branchName, cancellationToken))
+        {
+            await RunGitAsync(repositoryPath, $"checkout {branchName}", cancellationToken);
+            await RunGitAsync(repositoryPath, $"pull --ff-only origin {branchName}", cancellationToken);
+            return;
+        }
+
+        await RunGitAsync(repositoryPath, $"checkout -B {branchName}", cancellationToken);
+    }
+
+    private static async Task<bool> RemoteBranchExistsAsync(
+        string repositoryPath,
+        string branchName,
+        CancellationToken cancellationToken)
+    {
+        var output = await RunGitAsync(
+            repositoryPath,
+            $"ls-remote --heads origin {branchName}",
+            cancellationToken);
+
+        return !string.IsNullOrWhiteSpace(output);
     }
 
     private async Task EnsureGitIdentityAsync(string repositoryPath, CancellationToken cancellationToken)
@@ -99,6 +148,9 @@ public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogge
 
     private static string EscapeGitConfigValue(string value) =>
         value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
+
+    private static string EscapeGitCommitMessage(string value) =>
+        value.Replace("\"", "\\\"", StringComparison.Ordinal);
 
     private string BuildCloneUrl(GitHubRepositoryRef repository)
     {
