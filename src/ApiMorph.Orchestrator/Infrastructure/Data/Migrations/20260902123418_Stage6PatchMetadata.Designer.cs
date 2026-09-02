@@ -3,6 +3,7 @@ using System;
 using ApiMorph.Orchestrator.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiMorph.Orchestrator.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApiMorphDbContext))]
-    partial class ApiMorphDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260902123418_Stage6PatchMetadata")]
+    partial class Stage6PatchMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");

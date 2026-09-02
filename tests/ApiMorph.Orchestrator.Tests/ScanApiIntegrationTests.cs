@@ -64,6 +64,37 @@ public class ScanApiIntegrationTests : IClassFixture<ScanApiFactory>
     }
 
     [Fact]
+    public async Task CreateScan_ReportReflectsPersistedPatchMetadata()
+    {
+        var demoPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..", "..",
+            "examples", "stripe-csharp-demo", "StripeDemo"));
+
+        var createResponse = await _client.PostAsJsonAsync("/api/v1/scans", new CreateScanRequest
+        {
+            RepositoryPath = demoPath,
+            Provider = "stripe",
+            Language = "csharp",
+            DetectOnly = false,
+        });
+
+        createResponse.EnsureSuccessStatusCode();
+        var created = await createResponse.Content.ReadFromJsonAsync<ScanJobResponse>();
+        Assert.NotNull(created);
+        Assert.Equal("deterministic", created.PatchMode);
+        Assert.Equal(1, created.PatchCount);
+
+        var reportResponse = await _client.GetAsync($"/api/v1/scans/{created.Id}/report?format=markdown");
+        reportResponse.EnsureSuccessStatusCode();
+        var markdown = await reportResponse.Content.ReadAsStringAsync();
+        Assert.Contains("Patch mode: **deterministic**", markdown);
+        Assert.Contains("Patches proposed: **1**", markdown);
+        Assert.Contains("## Proposed patches", markdown);
+        Assert.Contains("Services/PaymentService.cs", markdown);
+    }
+
+    [Fact]
     public async Task CreateScan_ReturnsBadRequest_WhenRepositoryPathMissing()
     {
         var response = await _client.PostAsJsonAsync("/api/v1/scans", new CreateScanRequest());

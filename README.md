@@ -68,8 +68,8 @@ curl http://127.0.0.1:8080/api/v1/status
 | 3 | Done | OpenAPI diff + C# detection + scan API + Markdown report |
 | 4 | Done | GitHub draft PR automation (PAT, idempotent branch reuse) |
 | 5 | Done | Deterministic patches + optional LLM (BYOK / Ollama) |
-| 6 | Next | Interactive CLI installer |
-| 7 | Planned | GitHub App (replace PAT) |
+| 6 | Done | CLI: `init`, `scan`, `doctor`, `status` |
+| 7 | Next | GitHub App (replace PAT) |
 | 8 | Planned | Webhooks & scheduled scans |
 | 9 | Planned | Pluggable OpenAPI-first providers |
 
@@ -138,6 +138,18 @@ curl -X POST http://127.0.0.1:8080/api/v1/scans \
 ```
 
 PRs remain **draft** until a human reviews and merges.
+
+## CLI (Stage 6)
+
+```bash
+dotnet run --project src/ApiMorph.Cli -- init
+dotnet run --project src/ApiMorph.Cli -- doctor
+dotnet run --project src/ApiMorph.Cli -- status
+dotnet run --project src/ApiMorph.Cli -- scan --owner your-org --repo your-repo --pr
+dotnet run --project src/ApiMorph.Cli -- scan --path /examples/stripe-csharp-demo/StripeDemo --report
+```
+
+Or after `dotnet tool install` (local): `dotnet run --project src/ApiMorph.Cli -- --version`
 
 ## License
 
