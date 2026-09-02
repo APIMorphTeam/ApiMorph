@@ -90,6 +90,10 @@ public sealed class ScanService(
             var patchMode = analyzeResponse.Summary.PatchMode;
             var patches = analyzeResponse.Patches;
 
+            scanJob.PatchMode = patchMode;
+            scanJob.PatchCount = patches.Count;
+            scanJob.PatchesJson = PatchSerialization.SerializeSummaries(patches);
+
             if (ShouldCreatePullRequest(request, repositoryRef))
             {
                 await CreateDraftPullRequestAsync(
@@ -166,7 +170,11 @@ public sealed class ScanService(
         {
             ScanJobId = scanJob.Id,
             Format = "markdown",
-            Content = reportGenerator.GenerateMarkdown(scanJob, scanJob.Findings.ToList()),
+            Content = reportGenerator.GenerateMarkdown(
+                scanJob,
+                scanJob.Findings.ToList(),
+                scanJob.PatchMode,
+                PatchSerialization.DeserializeSummaries(scanJob.PatchesJson)),
         };
     }
 
@@ -377,7 +385,7 @@ public sealed class ScanService(
                 .ToList(),
             PullRequestUrl = scanJob.PullRequestUrl,
             PullRequestNumber = scanJob.PullRequestNumber,
-            PatchMode = patchMode,
-            PatchCount = patchCount,
+            PatchMode = string.IsNullOrWhiteSpace(scanJob.PatchMode) ? patchMode : scanJob.PatchMode,
+            PatchCount = scanJob.PatchCount > 0 ? scanJob.PatchCount : patchCount,
         };
 }

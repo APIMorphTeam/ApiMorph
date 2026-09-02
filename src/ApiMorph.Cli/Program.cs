@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using System.Reflection;
+﻿using ApiMorph.Cli.Commands;
 
-const string version = "0.1.0-stage2";
+const string version = "0.2.0-stage6";
 
 if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
 {
@@ -10,12 +9,16 @@ if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
 }
 
 var command = args[0].ToLowerInvariant();
+var commandArgs = args.Skip(1).ToArray();
 
 return command switch
 {
     "--version" or "-v" => PrintVersion(),
-    "doctor" => RunDoctor(),
-    _ => UnknownCommand(command)
+    "init" => InitCommand.Run(commandArgs),
+    "scan" => await ScanCommand.RunAsync(commandArgs),
+    "doctor" => await DoctorCommand.RunAsync(commandArgs),
+    "status" => await StatusCommand.RunAsync(commandArgs),
+    _ => UnknownCommand(command),
 };
 
 static int PrintVersion()
@@ -24,86 +27,30 @@ static int PrintVersion()
     return 0;
 }
 
-static int RunDoctor()
-{
-    Console.WriteLine("ApiMorph doctor");
-    Console.WriteLine("===============");
-    Console.WriteLine();
-
-    var allOk = true;
-
-    allOk &= CheckCommand("docker", "--version", "Docker");
-    allOk &= CheckCommand("dotnet", "--version", ".NET SDK");
-
-    Console.WriteLine();
-    Console.WriteLine(allOk
-        ? "All checks passed. You can run: cd deploy && docker compose up --build"
-        : "Some checks failed. Install missing prerequisites before continuing.");
-
-    return allOk ? 0 : 1;
-}
-
-static bool CheckCommand(string fileName, string arguments, string label)
-{
-  try
-  {
-    var psi = new ProcessStartInfo
-    {
-      FileName = fileName,
-      Arguments = arguments,
-      RedirectStandardOutput = true,
-      RedirectStandardError = true,
-      UseShellExecute = false,
-      CreateNoWindow = true
-    };
-
-    using var process = Process.Start(psi);
-    if (process is null)
-    {
-      Console.WriteLine($"[FAIL] {label}: could not start process");
-      return false;
-    }
-
-    var output = process.StandardOutput.ReadToEnd().Trim();
-    process.WaitForExit();
-
-    if (process.ExitCode == 0)
-    {
-      Console.WriteLine($"[ OK ] {label}: {output.Split('\n')[0]}");
-      return true;
-    }
-
-    Console.WriteLine($"[FAIL] {label}: exit code {process.ExitCode}");
-    return false;
-  }
-  catch (Exception ex)
-  {
-    Console.WriteLine($"[FAIL] {label}: {ex.Message}");
-    return false;
-  }
-}
-
 static int UnknownCommand(string command)
 {
-  Console.Error.WriteLine($"Unknown command: {command}");
-  PrintHelp();
-  return 1;
+    Console.Error.WriteLine($"Unknown command: {command}");
+    PrintHelp();
+    return 1;
 }
 
 static void PrintHelp()
 {
-  var assembly = Assembly.GetExecutingAssembly().GetName().Name;
-  Console.WriteLine($"""
-  {assembly} — ApiMorph installer and diagnostics (Stage 2 stub)
+    Console.WriteLine("""
+    apimorph — ApiMorph installer and operator CLI
 
-  Usage:
-    {assembly} --version
-    {assembly} doctor
+    Usage:
+      apimorph init
+      apimorph scan --owner ORG --repo NAME [--pr]
+      apimorph scan --path /examples/stripe-csharp-demo/StripeDemo
+      apimorph doctor
+      apimorph status
 
-  Commands:
-    --version, -v   Print CLI version
-    doctor          Check local prerequisites (Docker, .NET SDK)
-
-  Full interactive installer arrives in Stage 6.
-  """);
+    Commands:
+      init            Write deploy/.env interactively
+      scan            Run a scan via orchestrator API
+      doctor          Check Docker, orchestrator, optional Ollama
+      status          Show orchestrator /api/v1/status
+      --version, -v   Print CLI version
+    """);
 }

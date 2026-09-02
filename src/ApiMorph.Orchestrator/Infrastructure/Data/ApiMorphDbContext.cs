@@ -43,6 +43,8 @@ public class ApiMorphDbContext(DbContextOptions<ApiMorphDbContext> options) : Db
             entity.Property(e => e.RepositoryPath).HasMaxLength(2048);
             entity.Property(e => e.BranchName).HasMaxLength(512);
             entity.Property(e => e.PullRequestUrl).HasMaxLength(2048);
+            entity.Property(e => e.PatchMode).HasMaxLength(32).HasDefaultValue("detect-only");
+            entity.Property(e => e.PatchesJson).HasMaxLength(16384);
             entity.HasOne(e => e.Repository)
                 .WithMany(r => r.ScanJobs)
                 .HasForeignKey(e => e.RepositoryId)

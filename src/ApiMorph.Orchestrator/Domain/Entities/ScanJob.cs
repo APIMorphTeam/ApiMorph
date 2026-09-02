@@ -26,5 +26,12 @@ public class ScanJob
 
     public int? PullRequestNumber { get; set; }
 
+    public string PatchMode { get; set; } = "detect-only";
+
+    public int PatchCount { get; set; }
+
+  /// <summary>JSON array of patch summaries (metadata only, no file content).</summary>
+    public string? PatchesJson { get; set; }
+
     public ICollection<Finding> Findings { get; set; } = [];
 }
