@@ -14,13 +14,21 @@ services:
       Patch__Enabled: ${Patch__Enabled:-true}
       GitHub__AutoMerge: "false"
       GitHub__WorkspacePath: /workspace
+      # Prefer GitHub App (Stage 7). PAT remains a demo fallback.
       GitHub__Token: ${GitHub__Token:-}
+      GitHub__AppId: ${GitHub__AppId:-}
+      GitHub__InstallationId: ${GitHub__InstallationId:-}
+      # Set to /run/secrets/github-app.pem and add the volume below when using a GitHub App
+      GitHub__AppPrivateKeyPath: ${GitHub__AppPrivateKeyPath:-}
+      GitHub__WebhookSecret: ${GitHub__WebhookSecret:-}
       GitHub__CommitAuthorName: ${GitHub__CommitAuthorName:-ApiMorph Bot}
       GitHub__CommitAuthorEmail: ${GitHub__CommitAuthorEmail:-apimorph-bot@users.noreply.github.com}
     volumes:
       - apimorph-data:/data
       - ../examples:/examples:ro
       - apimorph-workspace:/workspace
+      # Uncomment when using GitHub App (place PEM at deploy/secrets/github-app.pem):
+      - ./secrets/github-app.pem:/run/secrets/github-app.pem:ro
     depends_on:
       engine:
         condition: service_started

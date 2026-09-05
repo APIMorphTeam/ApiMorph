@@ -38,6 +38,7 @@ builder.Services.AddHttpClient<IEngineClient, EngineClient>((serviceProvider, cl
 
 builder.Services.AddScoped<IScanService, ScanService>();
 builder.Services.AddScoped<IScanReportGenerator, ScanReportGenerator>();
+builder.Services.AddSingleton<IGitHubCredentialProvider, GitHubCredentialProvider>();
 builder.Services.AddSingleton<IGitRepositoryService, GitRepositoryService>();
 builder.Services.AddSingleton<IGitHubPullRequestService, GitHubPullRequestService>();
 

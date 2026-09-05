@@ -22,6 +22,8 @@ internal static class StatusCommand
         Console.WriteLine($"Patch enabled:  {status.Configuration?.PatchEnabled}");
         Console.WriteLine($"LLM enabled:    {status.Configuration?.LlmEnabled}");
         Console.WriteLine($"Auto-merge:     {status.Configuration?.AutoMerge}");
+        Console.WriteLine($"GitHub auth:    {status.Configuration?.GithubAuthMode ?? "none"}");
+        Console.WriteLine($"GitHub ready:   {status.Configuration?.GithubConfigured}");
         return 0;
     }
 

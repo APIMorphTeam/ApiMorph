@@ -74,12 +74,15 @@ Returns a Markdown report (`format: markdown`).
 
 ## GitHub configuration
 
-Set in environment or `appsettings.json`:
+Prefer a **GitHub App** (Stage 7). PAT remains a fallback.
 
 ```json
 {
   "GitHub": {
-    "Token": "ghp_...",
+    "AppId": "123456",
+    "InstallationId": 987654321,
+    "AppPrivateKeyPath": "/run/secrets/github-app.pem",
+    "Token": "",
     "AutoMerge": false,
     "BranchPrefix": "apimorph",
     "WorkspacePath": "/workspace"
@@ -89,9 +92,11 @@ Set in environment or `appsettings.json`:
 
 **Security notes:**
 
-- Use a fine-scoped PAT with `contents` + `pull_requests` access to selected repos.
+- Self-hosted operators use `deploy/.env` + PEM mounts — **not** `dotnet user-secrets`.
+- Prefer App over PAT; if using a PAT, fine-scoped `contents` + `pull_requests` only.
 - `AutoMerge` must remain `false` (enforced in code).
 - Draft PRs are idempotent per provider branch (`apimorph/{provider}-migration`); existing open PRs are reused.
+- See [docs/github-app.md](../github-app.md).
 
 ## Report file in PR
 

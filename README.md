@@ -69,8 +69,8 @@ curl http://127.0.0.1:8080/api/v1/status
 | 4 | Done | GitHub draft PR automation (PAT, idempotent branch reuse) |
 | 5 | Done | Deterministic patches + optional LLM (BYOK / Ollama) |
 | 6 | Done | CLI: `init`, `scan`, `doctor`, `status` |
-| 7 | Next | GitHub App (replace PAT) |
-| 8 | Planned | Webhooks & scheduled scans |
+| 7 | Done | GitHub App auth (PEM mount / env; PAT fallback) |
+| 8 | Next | Webhooks & scheduled scans |
 | 9 | Planned | Pluggable OpenAPI-first providers |
 
 ## Scan API (Stage 3)
@@ -148,6 +148,12 @@ dotnet run --project src/ApiMorph.Cli -- status
 dotnet run --project src/ApiMorph.Cli -- scan --owner your-org --repo your-repo --pr
 dotnet run --project src/ApiMorph.Cli -- scan --path /examples/stripe-csharp-demo/StripeDemo --report
 ```
+
+## GitHub App (Stage 7)
+
+Prefer a GitHub App over a PAT. Operators configure secrets via `deploy/.env` + a PEM file under `deploy/secrets/` (gitignored). **No `dotnet user-secrets` required** for normal self-hosted use.
+
+See [docs/github-app.md](docs/github-app.md).
 
 Or after `dotnet tool install` (local): `dotnet run --project src/ApiMorph.Cli -- --version`
 

@@ -124,6 +124,8 @@ public class ScanServiceTests
     {
         public bool IsConfigured { get; set; } = true;
 
+        public GitHubAuthMode AuthMode => IsConfigured ? GitHubAuthMode.Pat : GitHubAuthMode.None;
+
         public Task<PullRequestResult?> FindOpenPullRequestAsync(
             GitHubRepositoryRef repository,
             string branchName,

@@ -1,21 +1,22 @@
-using Microsoft.Extensions.Options;
 using Octokit;
 
 namespace ApiMorph.Orchestrator.Infrastructure.GitHub;
 
-public sealed class GitHubPullRequestService(IOptions<GitHubOptions> options, ILogger<GitHubPullRequestService> logger)
-    : IGitHubPullRequestService
+public sealed class GitHubPullRequestService(
+    IGitHubCredentialProvider credentialProvider,
+    ILogger<GitHubPullRequestService> logger) : IGitHubPullRequestService
 {
-    private readonly GitHubOptions _options = options.Value;
 
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(_options.Token);
+    public bool IsConfigured => credentialProvider.IsConfigured;
+
+    public GitHubAuthMode AuthMode => credentialProvider.AuthMode;
 
     public async Task<PullRequestResult?> FindOpenPullRequestAsync(
         GitHubRepositoryRef repository,
         string branchName,
         CancellationToken cancellationToken = default)
     {
-        var client = CreateClient();
+        var client = await CreateClientAsync(cancellationToken);
         var request = new PullRequestRequest
         {
             State = ItemStateFilter.Open,
@@ -53,7 +54,7 @@ public sealed class GitHubPullRequestService(IOptions<GitHubOptions> options, IL
             return existing;
         }
 
-        var client = CreateClient();
+        var client = await CreateClientAsync(cancellationToken);
         var pullRequest = await client.PullRequest.Create(
             repository.Owner,
             repository.Repo,
@@ -66,16 +67,17 @@ public sealed class GitHubPullRequestService(IOptions<GitHubOptions> options, IL
         return new PullRequestResult(pullRequest.HtmlUrl, pullRequest.Number, branchName);
     }
 
-    private GitHubClient CreateClient()
+    private async Task<GitHubClient> CreateClientAsync(CancellationToken cancellationToken)
     {
         if (!IsConfigured)
         {
-            throw new InvalidOperationException("GitHub token is not configured.");
+            throw new InvalidOperationException("GitHub is not configured (App or PAT).");
         }
 
+        var credential = await credentialProvider.GetAccessTokenAsync(cancellationToken);
         return new GitHubClient(new ProductHeaderValue("ApiMorph"))
         {
-            Credentials = new Credentials(_options.Token),
+            Credentials = new Credentials(credential.Token),
         };
     }
 }
