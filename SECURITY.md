@@ -18,7 +18,7 @@ ApiMorph is designed for **self-hosted / on-prem** use:
 2. **Outbound-only networking:** The intended deployment exposes no inbound internet ports. Egress is HTTPS (443) to explicit dependencies (e.g. GitHub, provider OpenAPI endpoints, optional user-configured LLM endpoints).
 3. **Least privilege:** GitHub credentials must be scoped to the minimum permissions needed (contents/read, pull requests/write, metadata/read). Avoid classic PATs with org-wide access in production.
 4. **Human-in-the-loop:** Default behavior creates **draft** PRs only. Auto-merge is off unless explicitly enabled by the operator.
-5. **Secrets stay local:** GitHub App private keys, PATs, LLM API keys, and database files remain on customer infrastructure. Prefer env files / secret mounts that are not committed to git.
+5. **Secrets stay local:** GitHub App private keys, PATs, LLM API keys, and database files remain on customer infrastructure. Prefer env files / secret mounts that are not committed to git. Self-hosted operators configure via `deploy/.env` and PEM mounts — they do **not** need `dotnet user-secrets` (that is optional for local SDK developers only).
 6. **Optional offline LLM:** Operators may use a local model endpoint (e.g. Ollama) so prompt traffic never leaves the network. Detection itself must not require an LLM.
 7. **No silent code exfiltration:** Telemetry, if ever added, must be opt-in and must not include source code, secrets, or file contents by default.
 
@@ -58,7 +58,8 @@ Operators should treat the following as high-risk configuration:
 
 - [ ] Run via Docker Compose on a dedicated host/VM
 - [ ] Restrict host access (SSH, disk encryption where appropriate)
-- [ ] Use a GitHub App with least privilege, limited to selected repos
+- [ ] Use a GitHub App with least privilege, limited to selected repos (see [docs/github-app.md](docs/github-app.md))
+- [ ] Mount the App private key as a file (`GitHub__AppPrivateKeyPath`); never commit `*.pem`
 - [ ] Keep `AUTO_MERGE=false` and prefer draft PRs
 - [ ] If using cloud LLMs, understand that **selected code fragments** may leave the network; use Ollama/air-gapped mode for sensitive repos
 - [ ] Do not commit `.env`, keys, or `*.db` files

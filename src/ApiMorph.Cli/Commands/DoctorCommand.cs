@@ -84,6 +84,25 @@ internal static class DoctorCommand
             Console.WriteLine($"[ OK ] Engine status: {status.Engine?.Status ?? "unknown"}");
             Console.WriteLine($"[ OK ] Patch enabled: {status.Configuration?.PatchEnabled}");
             Console.WriteLine($"[ OK ] LLM enabled:   {status.Configuration?.LlmEnabled}");
+
+            var authMode = status.Configuration?.GithubAuthMode ?? "none";
+            var githubConfigured = status.Configuration?.GithubConfigured == true;
+            if (githubConfigured)
+            {
+                Console.WriteLine($"[ OK ] GitHub auth:   {authMode}");
+            }
+            else
+            {
+                Console.WriteLine("[WARN] GitHub auth:   not configured (App preferred, or PAT fallback)");
+                Console.WriteLine("       Run: apimorph init  — and see docs/github-app.md");
+            }
+
+            if (status.Configuration?.GithubAppIdConfigured == true
+                && status.Configuration?.GithubPrivateKeyConfigured != true)
+            {
+                Console.WriteLine("[WARN] GitHub App ID set but private key file/content missing");
+            }
+
             return true;
         }
         catch (Exception ex)

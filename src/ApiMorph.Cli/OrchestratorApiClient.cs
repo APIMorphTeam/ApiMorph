@@ -87,6 +87,18 @@ internal sealed class OrchestratorApiClient(HttpClient httpClient)
         public bool PatchEnabled { get; set; }
 
         public bool AutoMerge { get; set; }
+
+        public string? GithubAuthMode { get; set; }
+
+        public bool GithubConfigured { get; set; }
+
+        public bool GithubAppIdConfigured { get; set; }
+
+        public bool GithubPrivateKeyConfigured { get; set; }
+
+        public bool GithubInstallationIdConfigured { get; set; }
+
+        public bool GithubPatConfigured { get; set; }
     }
 
     internal sealed class ScanRequest

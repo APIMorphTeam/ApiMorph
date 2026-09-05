@@ -4,8 +4,10 @@ using Microsoft.Extensions.Options;
 
 namespace ApiMorph.Orchestrator.Infrastructure.GitHub;
 
-public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogger<GitRepositoryService> logger)
-    : IGitRepositoryService
+public sealed class GitRepositoryService(
+    IGitHubCredentialProvider credentialProvider,
+    IOptions<GitHubOptions> options,
+    ILogger<GitRepositoryService> logger) : IGitRepositoryService
 {
     private readonly GitHubOptions _options = options.Value;
 
@@ -13,16 +15,20 @@ public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogge
     {
         Directory.CreateDirectory(_options.WorkspacePath);
         var targetPath = Path.Combine(_options.WorkspacePath, repository.Owner, repository.Repo);
+        var credential = credentialProvider.IsConfigured
+            ? await credentialProvider.GetAccessTokenAsync(cancellationToken)
+            : null;
 
         if (!Directory.Exists(Path.Combine(targetPath, ".git")))
         {
             var parentDirectory = Path.GetDirectoryName(targetPath)!;
             Directory.CreateDirectory(parentDirectory);
-            var cloneUrl = BuildCloneUrl(repository);
+            var cloneUrl = BuildAuthenticatedUrl(repository, credential);
             await RunGitAsync(parentDirectory, $"clone {cloneUrl} \"{targetPath}\"", cancellationToken);
         }
         else
         {
+            await EnsureRemoteUrlAsync(targetPath, repository, credential, cancellationToken);
             await RunGitAsync(targetPath, "fetch origin", cancellationToken);
             await RunGitAsync(targetPath, $"checkout {repository.DefaultBranch}", cancellationToken);
             await RunGitAsync(targetPath, "pull --ff-only origin " + repository.DefaultBranch, cancellationToken);
@@ -71,6 +77,17 @@ public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogge
         if (files.Count == 0)
         {
             throw new ArgumentException("At least one file change is required.", nameof(files));
+        }
+
+        var credential = credentialProvider.IsConfigured
+            ? await credentialProvider.GetAccessTokenAsync(cancellationToken)
+            : null;
+
+        // Refresh remote credentials before network ops (installation tokens expire ~1h).
+        var ownerRepo = ParseOwnerRepoFromPath(repositoryPath);
+        if (ownerRepo is not null)
+        {
+            await EnsureRemoteUrlAsync(repositoryPath, ownerRepo, credential, cancellationToken);
         }
 
         await CheckoutMigrationBranchAsync(repositoryPath, branchName, cancellationToken);
@@ -146,20 +163,44 @@ public sealed class GitRepositoryService(IOptions<GitHubOptions> options, ILogge
         await RunGitAsync(repositoryPath, $"config user.email \"{EscapeGitConfigValue(email)}\"", cancellationToken);
     }
 
+    private async Task EnsureRemoteUrlAsync(
+        string repositoryPath,
+        GitHubRepositoryRef repository,
+        GitHubAccessCredential? credential,
+        CancellationToken cancellationToken)
+    {
+        var url = BuildAuthenticatedUrl(repository, credential);
+        await RunGitAsync(repositoryPath, $"remote set-url origin {url}", cancellationToken);
+    }
+
+    private static GitHubRepositoryRef? ParseOwnerRepoFromPath(string repositoryPath)
+    {
+        var parts = repositoryPath.Replace('\\', '/').TrimEnd('/').Split('/');
+        if (parts.Length < 2)
+        {
+            return null;
+        }
+
+        return new GitHubRepositoryRef(parts[^2], parts[^1]);
+    }
+
     private static string EscapeGitConfigValue(string value) =>
         value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
 
     private static string EscapeGitCommitMessage(string value) =>
         value.Replace("\"", "\\\"", StringComparison.Ordinal);
 
-    private string BuildCloneUrl(GitHubRepositoryRef repository)
+    internal static string BuildAuthenticatedUrl(GitHubRepositoryRef repository, GitHubAccessCredential? credential)
     {
-        if (string.IsNullOrWhiteSpace(_options.Token))
+        if (credential is null || string.IsNullOrWhiteSpace(credential.Token))
         {
             return $"https://github.com/{repository.Owner}/{repository.Repo}.git";
         }
 
-        return $"https://{_options.Token}@github.com/{repository.Owner}/{repository.Repo}.git";
+        // GitHub App installation tokens must use the x-access-token username.
+        // PATs also work with this form.
+        var token = Uri.EscapeDataString(credential.Token);
+        return $"https://x-access-token:{token}@github.com/{repository.Owner}/{repository.Repo}.git";
     }
 
     private static async Task<string> RunGitAsync(string workingDirectory, string arguments, CancellationToken cancellationToken)

@@ -4,7 +4,36 @@ public sealed class GitHubOptions
 {
     public const string SectionName = "GitHub";
 
+    /// <summary>Legacy / fallback fine-scoped PAT. Prefer GitHub App credentials in production.</summary>
     public string? Token { get; set; }
+
+    /// <summary>GitHub App ID (numeric string from App settings).</summary>
+    public string? AppId { get; set; }
+
+    /// <summary>
+    /// Absolute path to the App private key PEM file (preferred for Docker / K8s secret mounts).
+    /// End users configure this path — they do not need <c>dotnet user-secrets</c>.
+    /// </summary>
+    public string? AppPrivateKeyPath { get; set; }
+
+    /// <summary>
+    /// Optional inline PEM content from a secret manager / env var.
+    /// Prefer <see cref="AppPrivateKeyPath"/> so the key is not present in process environment listings.
+    /// </summary>
+    public string? AppPrivateKey { get; set; }
+
+    /// <summary>
+    /// GitHub App installation id (numeric) or full installations URL
+    /// (e.g. https://github.com/organizations/ORG/settings/installations/123).
+    /// Bound as string so pasted URLs do not crash configuration binding.
+    /// </summary>
+    public string? InstallationId { get; set; }
+
+    /// <summary>Parsed numeric installation id, or null when missing/invalid.</summary>
+    public long? ParsedInstallationId => GitHubInstallationIdParser.Parse(InstallationId);
+
+    /// <summary>Webhook HMAC secret (used by Stage 8). Stored here for configuration completeness.</summary>
+    public string? WebhookSecret { get; set; }
 
     public bool AutoMerge { get; set; }
 
@@ -57,6 +86,8 @@ public interface IGitRepositoryService
 public interface IGitHubPullRequestService
 {
     bool IsConfigured { get; }
+
+    GitHubAuthMode AuthMode { get; }
 
     Task<PullRequestResult?> FindOpenPullRequestAsync(
         GitHubRepositoryRef repository,
