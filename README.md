@@ -54,6 +54,8 @@ curl http://127.0.0.1:8080/api/v1/status
 
 - [Architecture](docs/architecture.md)
 - [Stage 0 decisions](docs/STAGE0.md)
+- [Roadmap Stages 8+](docs/ROADMAP.md)
+- [GitHub App setup](docs/github-app.md)
 - [Threat model (sketch)](docs/THREAT_MODEL.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
@@ -70,8 +72,9 @@ curl http://127.0.0.1:8080/api/v1/status
 | 5 | Done | Deterministic patches + optional LLM (BYOK / Ollama) |
 | 6 | Done | CLI: `init`, `scan`, `doctor`, `status` |
 | 7 | Done | GitHub App auth (PEM mount / env; PAT fallback) |
-| 8 | Next | Webhooks & scheduled scans |
-| 9 | Planned | Pluggable OpenAPI-first providers |
+| 8 | Done | Automation: cron, branch-filtered webhooks, provider feed, `.conf` ([STAGE8.md](docs/STAGE8.md)) |
+| 9 | Next | Pluggable OpenAPI-first providers |
+| 10 | Planned | Packaging (server vs desktop UI), Postgres, Checks |
 
 ## Scan API (Stage 3)
 

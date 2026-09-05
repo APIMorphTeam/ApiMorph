@@ -99,6 +99,12 @@ internal sealed class OrchestratorApiClient(HttpClient httpClient)
         public bool GithubInstallationIdConfigured { get; set; }
 
         public bool GithubPatConfigured { get; set; }
+
+        public bool WebhookEnabled { get; set; }
+
+        public bool ScheduleEnabled { get; set; }
+
+        public bool ProviderFeedEnabled { get; set; }
     }
 
     internal sealed class ScanRequest

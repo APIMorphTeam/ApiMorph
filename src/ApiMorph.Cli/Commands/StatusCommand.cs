@@ -24,6 +24,9 @@ internal static class StatusCommand
         Console.WriteLine($"Auto-merge:     {status.Configuration?.AutoMerge}");
         Console.WriteLine($"GitHub auth:    {status.Configuration?.GithubAuthMode ?? "none"}");
         Console.WriteLine($"GitHub ready:   {status.Configuration?.GithubConfigured}");
+        Console.WriteLine($"Webhook:        {status.Configuration?.WebhookEnabled}");
+        Console.WriteLine($"Schedule:       {status.Configuration?.ScheduleEnabled}");
+        Console.WriteLine($"Provider feed:  {status.Configuration?.ProviderFeedEnabled}");
         return 0;
     }
 

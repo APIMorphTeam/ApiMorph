@@ -1,0 +1,15 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Stripe API (target)",
+    "version": "2024-06-20"
+  },
+  "paths": {
+    "/v1/charges": {
+      "post": {
+        "operationId": "CreateCharge",
+        "summary": "Create a charge"
+      }
+    }
+  }
+}
