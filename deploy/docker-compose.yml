@@ -23,10 +23,12 @@ services:
       GitHub__WebhookSecret: ${GitHub__WebhookSecret:-}
       GitHub__CommitAuthorName: ${GitHub__CommitAuthorName:-ApiMorph Bot}
       GitHub__CommitAuthorEmail: ${GitHub__CommitAuthorEmail:-apimorph-bot@users.noreply.github.com}
+      Automation__ConfigPath: /config
     volumes:
       - apimorph-data:/data
       - ../examples:/examples:ro
       - apimorph-workspace:/workspace
+      - ./config:/config:ro
       # Uncomment when using GitHub App (place PEM at deploy/secrets/github-app.pem):
       - ./secrets/github-app.pem:/run/secrets/github-app.pem:ro
     depends_on:

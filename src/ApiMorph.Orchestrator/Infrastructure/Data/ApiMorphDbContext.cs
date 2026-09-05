@@ -13,6 +13,10 @@ public class ApiMorphDbContext(DbContextOptions<ApiMorphDbContext> options) : Db
 
     public DbSet<Finding> Findings => Set<Finding>();
 
+    public DbSet<AutomationJob> AutomationJobs => Set<AutomationJob>();
+
+    public DbSet<ProviderFeedState> ProviderFeedStates => Set<ProviderFeedState>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Installation>(entity =>
@@ -28,6 +32,9 @@ public class ApiMorphDbContext(DbContextOptions<ApiMorphDbContext> options) : Db
             entity.Property(e => e.GitHubOwner).HasMaxLength(256).IsRequired();
             entity.Property(e => e.GitHubRepo).HasMaxLength(256).IsRequired();
             entity.Property(e => e.DefaultBranch).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.Providers).HasMaxLength(512).HasDefaultValue("stripe");
+            entity.Property(e => e.WebhookBranches).HasMaxLength(512);
+            entity.Property(e => e.ScheduleCron).HasMaxLength(128);
             entity.HasIndex(e => new { e.GitHubOwner, e.GitHubRepo }).IsUnique();
             entity.HasOne(e => e.Installation)
                 .WithMany(i => i.Repositories)
@@ -63,6 +70,31 @@ public class ApiMorphDbContext(DbContextOptions<ApiMorphDbContext> options) : Db
                 .WithMany(j => j.Findings)
                 .HasForeignKey(e => e.ScanJobId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AutomationJob>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.GitHubOwner).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.GitHubRepo).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.Provider).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Language).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Trigger).HasConversion<string>().HasMaxLength(32);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
+            entity.Property(e => e.Branch).HasMaxLength(512);
+            entity.Property(e => e.CommitSha).HasMaxLength(64);
+            entity.Property(e => e.DedupeKey).HasMaxLength(512);
+            entity.Property(e => e.Error).HasMaxLength(4096);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.DedupeKey);
+        });
+
+        modelBuilder.Entity<ProviderFeedState>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Provider).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Fingerprint).HasMaxLength(128);
+            entity.HasIndex(e => e.Provider).IsUnique();
         });
     }
 }

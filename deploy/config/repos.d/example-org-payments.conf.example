@@ -1,0 +1,12 @@
+# example-org-payments.conf.example — copy to example-org-payments.conf and uncomment
+#
+# repo.owner = APIMorphTeam
+# repo.name = ApiMorph-test
+# repo.enabled = true
+# repo.providers = stripe
+# repo.default_branch = main
+# Optional: override global webhook branch filter for this repo
+# repo.webhook_branches = main,release/*
+# Optional: override global cron for this repo (5-field cron)
+# repo.schedule_cron = 0 3 * * *
+# repo.create_pull_request = true

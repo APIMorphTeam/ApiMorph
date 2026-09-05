@@ -1,6 +1,8 @@
+using ApiMorph.Orchestrator.Infrastructure.Config;
 using ApiMorph.Orchestrator.Infrastructure.Engine;
 using ApiMorph.Orchestrator.Infrastructure.GitHub;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace ApiMorph.Orchestrator.Controllers;
 
@@ -9,6 +11,7 @@ namespace ApiMorph.Orchestrator.Controllers;
 public class StatusController(
     IEngineClient engineClient,
     IGitHubCredentialProvider gitHubCredentialProvider,
+    IOptions<AutomationOptions> automationOptions,
     IConfiguration configuration) : ControllerBase
 {
     [HttpGet("status")]
@@ -29,6 +32,7 @@ public class StatusController(
         }
 
         var github = BuildGitHubStatus();
+        var automation = automationOptions.Value;
 
         return Ok(new
         {
@@ -48,6 +52,10 @@ public class StatusController(
                 githubPrivateKeyConfigured = github.PrivateKeyConfigured,
                 githubInstallationIdConfigured = github.InstallationIdConfigured,
                 githubPatConfigured = github.PatConfigured,
+                webhookEnabled = automation.WebhookEnabled,
+                scheduleEnabled = automation.ScheduleEnabled,
+                providerFeedEnabled = automation.ProviderFeedEnabled,
+                webhookBranches = automation.GetWebhookBranches(),
             },
         });
     }
