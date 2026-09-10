@@ -1,0 +1,16 @@
+﻿{
+  "id": "acme-gh",
+  "displayName": "Acme Gh",
+  "languages": ["csharp"],
+  "source": {
+    "type": "github",
+    "openapiUrl": null,
+    "gitUrl": "https://github.com/acme/api.git",
+    "gitPath": "openapi.json",
+    "changelogUrl": null
+  },
+  "feed": {
+    "enabled": false,
+    "fingerprintFile": "contract/target.json"
+  }
+}

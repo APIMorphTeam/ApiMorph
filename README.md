@@ -73,7 +73,7 @@ curl http://127.0.0.1:8080/api/v1/status
 | 6 | Done | CLI: `init`, `scan`, `doctor`, `status` |
 | 7 | Done | GitHub App auth (PEM mount / env; PAT fallback) |
 | 8 | Done | Automation: cron, branch-filtered webhooks, provider feed, `.conf` ([STAGE8.md](docs/STAGE8.md)) |
-| 9 | Next | Pluggable OpenAPI-first providers |
+| 9 | In progress | Pluggable providers + custom packs ([STAGE9.md](docs/STAGE9.md)) |
 | 10 | Planned | Packaging (server vs desktop UI), Postgres, Checks |
 
 ## Scan API (Stage 3)

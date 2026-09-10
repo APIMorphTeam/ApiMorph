@@ -199,18 +199,19 @@ Same scan/PR engine; different operator surface.
 
 ## Stage 9 — Pluggable OpenAPI-first providers
 
-**Status:** Planned  
-**Goal:** Stripe remains the reference provider; architecture supports adding others without rewriting the orchestrator.
+**Status:** In progress (see [STAGE9.md](STAGE9.md))  
+**Goal:** Stripe remains the reference provider; **custom/manual packs** are the universal path. Optional auto sources (OpenAPI URL / git) feed the same pack format.
 
 | Layer | Plan |
 | --- | --- |
-| **Provider pack** | `providers/<id>/` — OpenAPI baseline/target or feed URL, rules, optional deterministic patches |
-| **Registry** | `IApiProvider` + `.conf` `scan.providers = stripe` (uncomment more later) |
-| **Languages** | `ILanguageScanner` — C# first; stubs for TS/Python later |
+| **Provider pack** | `providers/<id>/` + `deploy/config/providers/<id>/` — OpenAPI baseline/target, rules, `PROVIDER.md` |
+| **Custom first** | `apimorph provider init` + agent-friendly template; fill contracts manually |
+| **Registry** | Engine pack loader; conf `scan.provider` / `repo.providers` |
+| **Languages** | C# first; stubs for TS/Python later |
 | **Branches** | `apimorph/{provider}-migration` (already Stage 4/5 pattern) |
-| **Feed** | Stage 8 provider feed becomes multi-provider |
+| **Feed** | Fingerprint any pack `contract/target.json` (not Stripe-only) |
 
-**Definition of done:** Second provider (Twilio or mock OpenAPI pack) → findings + draft PR on a demo repo.
+**Definition of done:** Custom pack wizard + second pack (`mock`) → findings (+ draft PR on a demo repo when wired).
 
 ---
 

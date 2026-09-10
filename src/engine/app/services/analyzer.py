@@ -5,8 +5,7 @@ from app.services.csharp_scanner import scan_csharp_repository
 from app.services.llm_adapter import is_llm_configured, load_llm_settings, propose_file_patch
 from app.services.openapi_diff import diff_openapi_specs, load_openapi_spec
 from app.services.patch_generator import generate_deterministic_patches
-
-_FIXTURES_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "openapi"
+from app.services.provider_pack import load_provider_pack
 
 
 def analyze_repository(request: AnalyzeRequest) -> AnalyzeResponse:
@@ -14,12 +13,13 @@ def analyze_repository(request: AnalyzeRequest) -> AnalyzeResponse:
     if not repo_path.exists() or not repo_path.is_dir():
         raise ValueError(f"Repository path does not exist: {request.repository_path}")
 
-    baseline_path, target_path = _resolve_openapi_paths(request)
+    pack = load_provider_pack(request.provider)
+    baseline_path, target_path = _resolve_openapi_paths(request, pack)
     baseline_spec = load_openapi_spec(baseline_path)
     target_spec = load_openapi_spec(target_path)
-    openapi_changes = diff_openapi_specs(baseline_spec, target_spec)
+    openapi_changes = diff_openapi_specs(baseline_spec, target_spec, provider_id=pack.id)
 
-    code_matches = scan_csharp_repository(repo_path, openapi_changes)
+    code_matches = scan_csharp_repository(repo_path, openapi_changes, static_rules=pack.csharp_rules)
     files_scanned = sum(1 for path in repo_path.rglob("*.cs") if path.is_file() and "obj" not in path.parts)
 
     findings = [
@@ -110,16 +110,10 @@ def _resolve_patch_mode(patches: list[FilePatch]) -> str:
     return "mixed"
 
 
-def _resolve_openapi_paths(request: AnalyzeRequest) -> tuple[Path, Path]:
+def _resolve_openapi_paths(request: AnalyzeRequest, pack) -> tuple[Path, Path]:
     options = request.options
 
     if options.openapi_baseline_path and options.openapi_target_path:
         return Path(options.openapi_baseline_path), Path(options.openapi_target_path)
 
-    if request.provider == "stripe":
-        return (
-            _FIXTURES_DIR / "stripe_baseline.json",
-            _FIXTURES_DIR / "stripe_target.json",
-        )
-
-    raise ValueError(f"No OpenAPI fixtures configured for provider: {request.provider}")
+    return pack.baseline_path, pack.target_path

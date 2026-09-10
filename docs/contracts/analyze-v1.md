@@ -37,7 +37,7 @@ Analyze a local repository path for API contract impacts and optional migration 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `contractVersion` | string | yes | Must be `"1"` |
-| `provider` | string | yes | API provider id (MVP: `stripe`) |
+| `provider` | string | yes | Provider pack id (`stripe`, `mock`, or custom under `deploy/config/providers/`) |
 | `repositoryPath` | string | yes | Absolute path inside the engine container |
 | `language` | string | yes | Source language (MVP: `csharp`) |
 | `options.detectOnly` | bool | no | Default `true` — findings only, no patches |

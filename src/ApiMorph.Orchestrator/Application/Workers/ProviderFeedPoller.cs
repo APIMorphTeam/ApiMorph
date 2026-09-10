@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using ApiMorph.Orchestrator.Application.Services;
 using ApiMorph.Orchestrator.Domain.Entities;
 using ApiMorph.Orchestrator.Domain.Enums;
@@ -53,13 +54,7 @@ public sealed class ProviderFeedPoller(
 
         foreach (var provider in _options.GetProviderFeedProviders())
         {
-            if (!provider.Equals("stripe", StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogWarning("Provider feed for {Provider} is not implemented yet", provider);
-                continue;
-            }
-
-            var fingerprint = await ComputeStripeFingerprintAsync(cancellationToken);
+            var fingerprint = await ComputeProviderFingerprintAsync(provider, cancellationToken);
             var state = await db.ProviderFeedStates
                 .FirstOrDefaultAsync(s => s.Provider == provider, cancellationToken);
 
@@ -110,18 +105,11 @@ public sealed class ProviderFeedPoller(
         }
     }
 
-    private async Task<string> ComputeStripeFingerprintAsync(CancellationToken cancellationToken)
+    private async Task<string> ComputeProviderFingerprintAsync(
+        string provider,
+        CancellationToken cancellationToken)
     {
-        var candidates = new[]
-        {
-            _options.ProviderFeedStripeOpenApiPath,
-            Path.Combine(_options.ConfigPath, "feeds", "stripe_target.json"),
-            "/app/fixtures/openapi/stripe_target.json",
-            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..",
-                "src", "engine", "fixtures", "openapi", "stripe_target.json")),
-        };
-
-        foreach (var candidate in candidates)
+        foreach (var candidate in EnumerateFingerprintCandidates(provider))
         {
             if (string.IsNullOrWhiteSpace(candidate) || !File.Exists(candidate))
             {
@@ -133,7 +121,37 @@ public sealed class ProviderFeedPoller(
             return Convert.ToHexString(hash);
         }
 
-        // Stable placeholder when fixture is unavailable — still allows enablement without crash.
-        return Convert.ToHexString(SHA256.HashData("stripe-placeholder"u8.ToArray()));
+        logger.LogWarning(
+            "No OpenAPI fingerprint file found for provider {Provider}; using placeholder",
+            provider);
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes($"{provider}-placeholder")));
+    }
+
+    private IEnumerable<string?> EnumerateFingerprintCandidates(string provider)
+    {
+        var id = provider.Trim().ToLowerInvariant();
+
+        if (id == "stripe" && !string.IsNullOrWhiteSpace(_options.ProviderFeedStripeOpenApiPath))
+        {
+            yield return _options.ProviderFeedStripeOpenApiPath;
+        }
+
+        // Operator custom packs + shipped packs mounted into the orchestrator
+        yield return Path.Combine(_options.ConfigPath, "providers", id, "contract", "target.json");
+        yield return Path.Combine("/providers", id, "contract", "target.json");
+        yield return Path.Combine(_options.ConfigPath, "feeds", $"{id}_target.json");
+
+        // Stage 8 Stripe feed path
+        if (id == "stripe")
+        {
+            yield return Path.Combine(_options.ConfigPath, "feeds", "stripe_target.json");
+            yield return "/app/fixtures/openapi/stripe_target.json";
+            yield return Path.GetFullPath(Path.Combine(
+                AppContext.BaseDirectory, "..", "..", "..", "..", "..",
+                "providers", "stripe", "contract", "target.json"));
+            yield return Path.GetFullPath(Path.Combine(
+                AppContext.BaseDirectory, "..", "..", "..", "..", "..",
+                "src", "engine", "fixtures", "openapi", "stripe_target.json"));
+        }
     }
 }

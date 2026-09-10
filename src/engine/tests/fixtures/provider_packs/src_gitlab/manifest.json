@@ -1,0 +1,1 @@
+{"id":"src_gitlab","displayName":"GitLab","languages":["csharp"],"source":{"type":"gitlab","gitUrl":"https://gitlab.com/acme/api.git","gitPath":"spec/openapi.yaml"},"feed":{"enabled":false,"fingerprintFile":"contract/target.json"}}

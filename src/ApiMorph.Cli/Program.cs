@@ -1,6 +1,6 @@
 ﻿using ApiMorph.Cli.Commands;
 
-const string version = "0.3.0-stage8";
+const string version = "0.4.0-stage9";
 
 if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
 {
@@ -20,6 +20,7 @@ return command switch
     "status" => await StatusCommand.RunAsync(commandArgs),
     "config" => HandleConfig(commandArgs),
     "repos" => ReposCommand.Run(commandArgs),
+    "provider" => ProviderCommand.Run(commandArgs),
     _ => UnknownCommand(command),
 };
 
@@ -61,6 +62,7 @@ static void PrintHelp()
       apimorph config validate
       apimorph repos add --owner ORG --repo NAME
       apimorph repos list
+      apimorph provider list|init|validate
 
     Commands:
       init              Write deploy/.env interactively
@@ -69,6 +71,7 @@ static void PrintHelp()
       status            Show orchestrator /api/v1/status
       config validate   Parse deploy/config/*.conf
       repos             Manage repos.d registration files
+      provider          Manage OpenAPI provider packs (custom + shipped)
       --version, -v     Print CLI version
     """);
 }

@@ -1,0 +1,9 @@
+[
+  {
+    "ruleId": "mock.widget.legacy-client",
+    "pattern": "\\bLegacyWidgetClient\\b",
+    "message": "LegacyWidgetClient is deprecated; use WidgetClient instead",
+    "confidence": "high",
+    "guidance": "Replace LegacyWidgetClient with WidgetClient and the non-legacy activate API"
+  }
+]

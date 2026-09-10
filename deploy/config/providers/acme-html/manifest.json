@@ -1,0 +1,16 @@
+﻿{
+  "id": "acme-html",
+  "displayName": "Acme Html",
+  "languages": ["csharp"],
+  "source": {
+    "type": "html_changelog",
+    "openapiUrl": null,
+    "gitUrl": null,
+    "gitPath": null,
+    "changelogUrl": "https://example.com/changelog"
+  },
+  "feed": {
+    "enabled": false,
+    "fingerprintFile": "contract/target.json"
+  }
+}

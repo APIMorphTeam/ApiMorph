@@ -1,0 +1,16 @@
+﻿{
+  "id": "acme-oa",
+  "displayName": "Acme Oa",
+  "languages": ["csharp"],
+  "source": {
+    "type": "openapi_url",
+    "openapiUrl": "https://example.com/openapi.json",
+    "gitUrl": null,
+    "gitPath": null,
+    "changelogUrl": null
+  },
+  "feed": {
+    "enabled": false,
+    "fingerprintFile": "contract/target.json"
+  }
+}

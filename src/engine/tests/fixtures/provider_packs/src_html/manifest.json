@@ -1,0 +1,1 @@
+{"id":"src_html","displayName":"HTML changelog","languages":["csharp"],"source":{"type":"html_changelog","changelogUrl":"https://example.com/changelog"},"feed":{"enabled":false,"fingerprintFile":"contract/target.json"}}

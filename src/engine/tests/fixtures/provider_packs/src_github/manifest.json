@@ -1,0 +1,1 @@
+{"id":"src_github","displayName":"GitHub","languages":["csharp"],"source":{"type":"github","gitUrl":"https://github.com/acme/api.git","gitPath":"openapi/openapi.json"},"feed":{"enabled":true,"fingerprintFile":"contract/target.json"}}

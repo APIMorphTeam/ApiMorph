@@ -1,0 +1,1 @@
+{"openapi":"3.0.0","info":{"title":"T","version":"1"},"paths":{"/v1/x":{"get":{"operationId":"GetX","responses":{"200":{"description":"ok"}}}}}}

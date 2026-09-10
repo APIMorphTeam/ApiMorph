@@ -1,0 +1,18 @@
+﻿{
+  "openapi": "3.0.0",
+  "info": { "title": "Acme Gh", "version": "2.0.0" },
+  "paths": {
+    "/v1/items/{id}": {
+      "get": {
+        "operationId": "GetItem",
+        "responses": { "200": { "description": "ok" } }
+      }
+    }    ,
+    "/v1/items/{id}/action": {
+      "post": {
+        "operationId": "Action",
+        "responses": { "200": { "description": "ok" } }
+      }
+    }
+  }
+}

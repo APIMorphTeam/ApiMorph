@@ -1,0 +1,1 @@
+{"id":"src_openapi_url","displayName":"OpenAPI URL","languages":["csharp"],"source":{"type":"openapi_url","openapiUrl":"https://example.com/openapi.json"},"feed":{"enabled":true,"fingerprintFile":"contract/target.json"}}

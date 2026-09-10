@@ -1,0 +1,16 @@
+﻿{
+  "id": "myvendor",
+  "displayName": "Myvendor",
+  "languages": ["csharp"],
+  "source": {
+    "type": "manual",
+    "openapiUrl": null,
+    "gitUrl": null,
+    "gitPath": null,
+    "changelogUrl": null
+  },
+  "feed": {
+    "enabled": false,
+    "fingerprintFile": "contract/target.json"
+  }
+}

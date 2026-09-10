@@ -29,6 +29,7 @@ services:
       - ../examples:/examples:ro
       - apimorph-workspace:/workspace
       - ./config:/config:ro
+      - ../providers:/providers:ro
       # Uncomment when using GitHub App (place PEM at deploy/secrets/github-app.pem):
       - ./secrets/github-app.pem:/run/secrets/github-app.pem:ro
     depends_on:
@@ -43,6 +44,7 @@ services:
       - "8000"
     environment:
       LOG_LEVEL: info
+      APIMORPH_PROVIDERS_PATH: /providers
       LLM__ENABLED: ${Llm__Enabled:-false}
       LLM__PROVIDER: ${LLM__PROVIDER:-ollama}
       LLM__MODEL: ${LLM__MODEL:-llama3.2}
@@ -52,6 +54,8 @@ services:
     volumes:
       - ../examples:/examples:ro
       - apimorph-workspace:/workspace
+      - ../providers:/providers:ro
+      - ./config:/config:ro
 
 volumes:
   apimorph-data:
